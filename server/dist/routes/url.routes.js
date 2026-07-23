@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const url_controller_1 = require("../controllers/url.controller");
+const auth_1 = require("../middleware/auth");
+const router = (0, express_1.Router)();
+router.post("/shorten", auth_1.auth, url_controller_1.shortenUrl);
+router.get("/my-urls", auth_1.auth, url_controller_1.getMyUrls);
+router.get("/events", url_controller_1.subscribeToUrlClicks);
+exports.default = router;

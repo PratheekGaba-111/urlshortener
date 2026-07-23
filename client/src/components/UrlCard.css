@@ -1,116 +1,167 @@
 .url-card {
-
-    width: 100%;
-    max-width: 650px;
-
-    margin: 25px auto;
-
-    padding: 30px;
-
-    background: white;
-
-    border-radius: 18px;
-
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-
-    transition: 0.3s ease;
-
+  position: relative;
+  display: grid;
+  gap: 20px;
+  overflow: hidden;
+  padding: clamp(20px, 3vw, 26px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(145deg, rgba(56, 189, 248, 0.08), transparent 34%),
+    var(--surface);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(22px);
+  transition:
+    transform var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition);
+  animation: fade-up 440ms var(--ease) both;
 }
 
+.url-card::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  opacity: 0;
+  transform: translateX(-40%);
+  transition:
+    opacity var(--transition),
+    transform 520ms var(--ease);
+}
 
 .url-card:hover {
-
-    transform: translateY(-4px);
-
-    box-shadow: 0 15px 35px rgba(0,0,0,0.12);
-
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
 }
 
-
-
-.url-card h2 {
-
-    margin-bottom: 25px;
-
-    font-size: 24px;
-
-    color: #111827;
-
+.url-card:hover::before {
+  opacity: 1;
+  transform: translateX(40%);
 }
 
-
-
-.url-card p {
-
-    margin-top: 12px;
-
-    color: #374151;
-
-    font-size: 15px;
-
+.url-card--featured {
+  border-color: rgba(56, 189, 248, 0.35);
+  background:
+    linear-gradient(135deg, rgba(56, 189, 248, 0.14), transparent 42%),
+    linear-gradient(315deg, rgba(139, 92, 246, 0.12), transparent 34%),
+    var(--surface);
 }
 
-
-
-.url-card strong {
-
-    color: #111827;
-
+.url-card__topline,
+.url-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
 }
 
-
-
-.url-card a {
-
-    display: inline-block;
-
-    margin-top: 8px;
-
-    color: #2563eb;
-
-    word-break: break-all;
-
-    font-size: 15px;
-
+.url-card__code,
+.url-card__badge,
+.url-card__date {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--text-soft);
+  font-size: 0.84rem;
+  font-weight: 800;
+  padding: 7px 10px;
 }
 
-
-.url-card a:hover {
-
-    text-decoration: underline;
-
+.url-card__code {
+  color: var(--primary);
+  font-family: var(--font-mono);
 }
 
-
-
-.url-card button {
-
-    margin-top: 15px;
-
-    padding: 12px 22px;
-
-    border: none;
-
-    border-radius: 10px;
-
-    background: #2563eb;
-
-    color: white;
-
-    font-size: 15px;
-
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition: 0.2s;
-
+.url-card__main {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
 }
 
+.url-card__short {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: clamp(1.08rem, 2vw, 1.32rem);
+  font-weight: 850;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+}
 
+.url-card__short svg {
+  flex: 0 0 auto;
+  color: var(--primary);
+}
 
-.url-card button:hover {
+.url-card__short:hover {
+  color: var(--primary);
+}
 
-    background: #1d4ed8;
+.url-card__original {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
 
+.url-card__original:hover {
+  color: var(--text-soft);
+}
+
+.copy-button {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 850;
+  padding: 0 13px;
+  transition:
+    transform var(--transition),
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition);
+}
+
+.copy-button:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.copy-button.is-copied {
+  border-color: rgba(52, 211, 153, 0.42);
+  background: rgba(52, 211, 153, 0.12);
+  color: var(--success);
+}
+
+@media (max-width: 560px) {
+  .url-card__topline,
+  .url-card__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .copy-button {
+    width: 100%;
+  }
 }

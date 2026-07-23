@@ -8,11 +8,12 @@ export interface RegisterDetails{
     password : string
 }
 export interface User{
-    _id : string, 
+    id : string, 
     name : string, 
     email : string
 }
 export interface LoginResponse{
+    message : string,
     token : string, 
     user : User
 }

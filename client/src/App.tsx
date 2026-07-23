@@ -2,14 +2,22 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import PublicOnlyRoute from "./routes/PublicOnlyRoute";
+import AuthRedirect from "./routes/AuthRedirect";
 function App(){
   return(
     <BrowserRouter>
       <Routes>
-        <Route path="/home" element={<Home/>}/>
-        <Route path="/" element={<Login/>}/>
-        <Route path="/login" element ={<Login />} />
-        <Route path="/register" element={<Register/>}/>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/home" element={<Home />} />
+        </Route>
+        <Route element={<PublicOnlyRoute />}>
+          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Route>
+        <Route path="*" element={<AuthRedirect />} />
       </Routes>
     </BrowserRouter>
   )

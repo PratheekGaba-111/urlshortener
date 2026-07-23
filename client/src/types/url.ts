@@ -13,3 +13,8 @@ export interface UrlData {
     clicks: number;
     createdAt: string;
 }
+export interface UrlClickUpdate {
+    id: string;
+    shortCode: string;
+    clicks: number;
+}

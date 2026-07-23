@@ -1,72 +1,93 @@
 import { useEffect, useState } from "react";
 
-import type { UrlData } from "../types/url";
+import type { UrlClickUpdate, UrlData } from "../types/url";
 import { getMyUrls } from "../services/url.service";
 import UrlCard from "./UrlCard";
 import "./MyUrls.css";
+import { BarChart3, Link2, Plus } from "lucide-react";
 
-const MyUrls = () => {
+interface MyUrlsProps {
+  refreshKey?: number;
+  clickUpdate?: UrlClickUpdate | null;
+}
 
-    const [urls, setUrls] = useState<UrlData[]>([]);
+const MyUrls = ({ refreshKey = 0, clickUpdate = null }: MyUrlsProps) => {
+
+  const [urls, setUrls] = useState<UrlData[]>([]);
 
 
-    useEffect(() => {
+  useEffect(() => {
 
-        const fetchUrls = async () => {
+    const fetchUrls = async () => {
 
-            const response = await getMyUrls();
+      const response = await getMyUrls();
 
-            if(response){
-                setUrls(response.data);
+      if (response) {
+        setUrls(response.data);
+      }
+
+    };
+
+    fetchUrls();
+
+  }, [refreshKey]);
+
+  useEffect(() => {
+    if (!clickUpdate) return;
+
+    setUrls((currentUrls) =>
+      currentUrls.map((url) =>
+        url.id === clickUpdate.id
+          ? {
+              ...url,
+              clicks: clickUpdate.clicks,
             }
-
-        };
-
-        fetchUrls();
-
-    }, []);
+          : url,
+      ),
+    );
+  }, [clickUpdate]);
 
 
-    return (
+  return (
 
-        <section className="my-urls">
+    <section className="my-urls">
+      <div className="my-urls__header">
+        <div className="section-heading">
+          <span>Your workspace</span>
+          <h2>Link portfolio</h2>
+        </div>
+        <div className="my-urls__summary">
+          <span>
+            <Link2 size={15} aria-hidden="true" />
+            {urls.length} links
+          </span>
+          <span>
+            <BarChart3 size={15} aria-hidden="true" />
+            {urls.reduce((total, url) => total + url.clicks, 0)} clicks
+          </span>
+        </div>
+      </div>
 
-            <h2>
-                Your URLs
-            </h2>
-
-
-            {
-                urls.length === 0 ? (
-
-                    <p className="empty-message">
-                        No URLs created yet
-                    </p>
-
-                ) : (
-
-                    <div className="url-list">
-
-                        {
-                            urls.map((url) => (
-
-                                <UrlCard 
-                                    key={url.id}
-                                    urlData={url}
-                                />
-
-                            ))
-                        }
-
-                    </div>
-
-                )
-            }
-
-
-        </section>
-
-    )
+      {urls.length === 0 ? (
+        <div className="empty-state glass-panel">
+          <div className="empty-state__icon">
+            <Plus size={28} aria-hidden="true" />
+          </div>
+          <h3>No URLs created yet</h3>
+          <p>
+            Paste a long URL above and your first polished Shortify link will
+            appear here.
+          </p>
+        </div>
+      ) : (
+        <div className="url-list">
+          {urls.map((url) => (
+            <UrlCard key={url.id} urlData={url} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
 };
 
 export default MyUrls;

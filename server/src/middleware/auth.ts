@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
 import { verifyToken } from "../utils/verifyToken";
 
 export const auth = (
@@ -24,8 +23,7 @@ export const auth = (
             const decoded = verifyToken(token);
 
             req.user = {
-                id : decoded.id,
-                email : decoded.email
+                id : decoded.id
             };
             next();
         }catch{

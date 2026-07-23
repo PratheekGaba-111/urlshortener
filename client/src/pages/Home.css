@@ -1,45 +1,110 @@
 .home {
-
-    min-height: 100vh;
-
-    background: #f5f7fb;
-
-    padding-bottom: 50px;
-
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 18px 0 70px;
 }
 
-
-
-.home h1 {
-
-    text-align: center;
-
-    padding-top: 60px;
-
-    font-size: 44px;
-
-    font-weight: 700;
-
-    color: #111827;
-
+.home::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  background:
+    radial-gradient(circle at 18% 12%, rgba(56, 189, 248, 0.18), transparent 26rem),
+    radial-gradient(circle at 78% 18%, rgba(139, 92, 246, 0.18), transparent 28rem),
+    linear-gradient(180deg, var(--bg), var(--bg-muted));
 }
 
+.home::after {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 84px 84px;
+  mask-image: linear-gradient(to bottom, black, transparent 70%);
+  opacity: 0.18;
+}
 
+.home-hero {
+  width: var(--container);
+  margin: 0 auto;
+  padding: clamp(42px, 8vw, 96px) 0 32px;
+  text-align: center;
+  animation: fade-up 620ms var(--ease) both;
+}
 
-.home h1::after {
+.home-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
 
-    content: "";
+.home-hero h1 {
+  max-width: 900px;
+  margin: 24px auto 0;
+  color: var(--text);
+  font-size: clamp(3rem, 9vw, 7.8rem);
+  font-weight: 850;
+  letter-spacing: -0.07em;
+  line-height: 0.9;
+}
 
-    display: block;
+.home-hero p {
+  max-width: 720px;
+  margin: 26px auto 0;
+  color: var(--text-muted);
+  font-size: clamp(1rem, 2.1vw, 1.25rem);
+  line-height: 1.75;
+}
 
-    width: 80px;
+.home-dashboard {
+  display: grid;
+  width: var(--container);
+  gap: 28px;
+  margin: 0 auto;
+}
 
-    height: 4px;
+.home-dashboard__latest {
+  display: grid;
+  gap: 16px;
+}
 
-    background: #2563eb;
+.section-heading span {
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
 
-    margin: 15px auto;
+.section-heading h2 {
+  margin-top: 6px;
+  color: var(--text);
+  font-size: clamp(1.45rem, 3vw, 2.15rem);
+  letter-spacing: -0.04em;
+}
 
-    border-radius: 10px;
+@media (max-width: 640px) {
+  .home {
+    padding-bottom: 44px;
+  }
 
+  .home-hero {
+    padding-top: 28px;
+  }
 }
