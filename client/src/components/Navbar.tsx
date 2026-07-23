@@ -1,23 +1,22 @@
-import { Link, useLocation } from "react-router-dom";
 import { LogOut, Menu, Moon, Sparkles, Sun, X, Zap } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "../hooks/useTheme";
 import { clearAuthToken, isAuthenticated } from "../utils/auth";
 import "./Navbar.css";
-
+import { Link, useLocation, useNavigate } from "react-router-dom";
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const isDashboard = location.pathname === "/home";
   const authenticated = isAuthenticated();
-
+  const navigate = useNavigate();
   const closeMenu = () => setMenuOpen(false);
 
   const handleLogout = () => {
     clearAuthToken();
     setMenuOpen(false);
-    window.location.assign("/login");
+    navigate("/login", { replace: true });
   };
 
   return (

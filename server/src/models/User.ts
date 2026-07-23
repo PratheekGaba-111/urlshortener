@@ -3,12 +3,16 @@ import bcrypt from "bcrypt";
 
 
 export interface IUser extends Document {
-    name : string;
-    email : string;
-    password : string;
-    comparePassword(candidatePassword : string) : Promise<boolean>;
-}
+    name: string;
+    email: string;
+    password: string;
 
+    verified: boolean;
+    verificationToken: string | null;
+    verificationTokenExpires: Date | null;
+
+    comparePassword(candidatePassword: string): Promise<boolean>;
+}
 
 const UserSchema = new Schema(
     {
@@ -28,6 +32,20 @@ const UserSchema = new Schema(
             type : String,
             minLength : 6,
             required : true
+        },
+        verified: {
+            type: Boolean,
+            default: false
+        },
+
+        verificationToken: {
+            type: String,
+            default: null
+        },
+
+        verificationTokenExpires: {
+            type: Date,
+            default: null
         }
     },
     {

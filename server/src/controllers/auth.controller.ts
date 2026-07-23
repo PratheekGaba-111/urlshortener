@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 import User from "../models/User";
 import { generateToken } from "../utils/generateToken";
-
+import crypto from "crypto";
+import { sendVerificationEmail } from "../services/email.service";
 const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
-
 const toPublicUser = (user: { _id: unknown; name: string; email: string }) => ({
     id : user._id,
     name : user.name,
@@ -47,8 +47,18 @@ export const register = async(
             });
             return;
         } 
-
-        const user = await User.create({name, email, password});
+        const verificationToken = crypto.randomBytes(32).toString("hex");
+        const verificationTokenExpires = new Date(
+            Date.now() + 60 * 60 * 1000
+        );
+        const user = await User.create({
+            name,
+            email,
+            password,
+            verified : false,    
+            verificationToken,
+            verificationTokenExpires
+        });        
         const token = generateToken(user._id.toString());
         
         res.status(201).json({
@@ -90,7 +100,12 @@ export const login = async(
             });
             return;
         }
-
+        if (!withEmail.verified) {
+            res.status(403).json({
+                message: "Please verify your email first."
+            });
+            return;
+        }
         const compared = await withEmail.comparePassword(password);
         if(compared){
             const token = generateToken(withEmail._id.toString());
@@ -114,3 +129,30 @@ export const login = async(
         })
     }
 }
+
+export const verifyEmail = async(
+    req : Request,
+    res : Response
+) : Promise<void> => {
+    const {token} = req.params;
+
+    const user = await User.findOne({verificationToken : token, verificationTokenExpires : {$gt : new Date()}});
+
+    if(!user){
+        res.status(400).json({
+            success : false,
+            message : "Invalid or expired verification link."
+        });
+        return;
+    }
+
+    user.verified = true;
+    user.verificationToken = null;
+    user.verificationTokenExpires = null;
+    await user.save();
+
+    res.status(200).json({
+        success : true,
+        message : "Email verified successfully" 
+    });
+} 
