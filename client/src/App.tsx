@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicOnlyRoute from "./routes/PublicOnlyRoute";
 import VerifyEmail from "./pages/VerifyEmail";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AuthRedirect from "./routes/AuthRedirect";
 function App(){
   return(
@@ -18,6 +19,7 @@ function App(){
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify/:token" element={<VerifyEmail />} />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         </Route>
         <Route path="*" element={<AuthRedirect />} />
       </Routes>

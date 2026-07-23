@@ -13,11 +13,11 @@
     sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
-  --bg: #050713;
-  --bg-muted: #090d1d;
-  --bg-elevated: rgba(12, 18, 37, 0.78);
-  --surface: rgba(12, 18, 37, 0.72);
-  --surface-strong: rgba(17, 25, 49, 0.88);
+  --bg: #030712;
+  --bg-muted: #081120;
+  --bg-elevated: rgba(10, 16, 31, 0.82);
+  --surface: rgba(12, 19, 35, 0.78);
+  --surface-strong: rgba(16, 24, 43, 0.9);
   --surface-soft: rgba(255, 255, 255, 0.055);
   --border: rgba(148, 163, 184, 0.18);
   --border-strong: rgba(148, 163, 184, 0.32);
@@ -26,29 +26,29 @@
   --text-soft: #cbd5e1;
   --primary: #38bdf8;
   --primary-strong: #8b5cf6;
-  --primary-soft: rgba(56, 189, 248, 0.12);
+  --primary-soft: rgba(56, 189, 248, 0.14);
   --success: #34d399;
   --danger: #fb7185;
   --warning: #fbbf24;
-  --shadow-sm: 0 10px 30px rgba(0, 0, 0, 0.22);
-  --shadow-md: 0 20px 60px rgba(0, 0, 0, 0.34);
-  --shadow-glow: 0 0 45px rgba(56, 189, 248, 0.18);
+  --shadow-sm: 0 16px 45px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 30px 90px rgba(0, 0, 0, 0.38);
+  --shadow-glow: 0 0 55px rgba(56, 189, 248, 0.22);
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 20px;
-  --radius-xl: 28px;
-  --container: min(1180px, calc(100vw - 32px));
+  --radius-xl: 30px;
+  --container: min(1220px, calc(100vw - 32px));
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --transition: 180ms var(--ease);
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #f7f9fc;
-  --bg-muted: #eef3fa;
-  --bg-elevated: rgba(255, 255, 255, 0.86);
-  --surface: rgba(255, 255, 255, 0.78);
-  --surface-strong: rgba(255, 255, 255, 0.94);
+  --bg: #f4f7ff;
+  --bg-muted: #eaf1ff;
+  --bg-elevated: rgba(255, 255, 255, 0.9);
+  --surface: rgba(255, 255, 255, 0.82);
+  --surface-strong: rgba(255, 255, 255, 0.96);
   --surface-soft: rgba(15, 23, 42, 0.045);
   --border: rgba(15, 23, 42, 0.1);
   --border-strong: rgba(15, 23, 42, 0.16);
@@ -58,8 +58,8 @@
   --primary: #2563eb;
   --primary-strong: #7c3aed;
   --primary-soft: rgba(37, 99, 235, 0.1);
-  --shadow-sm: 0 12px 32px rgba(15, 23, 42, 0.08);
-  --shadow-md: 0 22px 70px rgba(15, 23, 42, 0.14);
+  --shadow-sm: 0 18px 40px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 28px 80px rgba(15, 23, 42, 0.15);
   --shadow-glow: 0 0 50px rgba(37, 99, 235, 0.16);
 }
 
@@ -80,13 +80,25 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 32rem),
-    radial-gradient(circle at top right, rgba(139, 92, 246, 0.18), transparent 30rem),
-    var(--bg);
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 28rem),
+    radial-gradient(circle at top right, rgba(139, 92, 246, 0.2), transparent 30rem),
+    linear-gradient(135deg, var(--bg), var(--bg-muted));
   color: var(--text);
-  transition:
-    background-color var(--transition),
-    color var(--transition);
+  transition: background-color var(--transition), color var(--transition);
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 72px 72px;
+  opacity: 0.18;
+  mask-image: radial-gradient(circle at center, black, transparent 82%);
 }
 
 body,

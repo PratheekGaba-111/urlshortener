@@ -22,3 +22,13 @@ export interface RegisterResponse{
     token : string, 
     user : User
 }
+
+export interface ForgotPasswordResponse {
+    success: boolean;
+    message: string;
+}
+
+export interface ResetPasswordResponse {
+    success: boolean;
+    message: string;
+}

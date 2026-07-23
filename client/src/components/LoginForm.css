@@ -115,6 +115,20 @@
   transform: translateX(100%);
 }
 
+.text-link {
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: left;
+  padding: 0;
+}
+
+.text-link:hover {
+  color: var(--primary-strong);
+}
+
 .error-message,
 .success-message {
   border-radius: var(--radius-md);

@@ -10,6 +10,8 @@ export interface IUser extends Document {
     verified: boolean;
     verificationToken: string | null;
     verificationTokenExpires: Date | null;
+    resetToken: string | null;
+    resetTokenExpires: Date | null;
 
     comparePassword(candidatePassword: string): Promise<boolean>;
 }
@@ -44,6 +46,14 @@ const UserSchema = new Schema(
         },
 
         verificationTokenExpires: {
+            type: Date,
+            default: null
+        },
+        resetToken: {
+            type: String,
+            default: null
+        },
+        resetTokenExpires: {
             type: Date,
             default: null
         }

@@ -1,22 +1,24 @@
-import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-const result = dotenv.config();
-const transporter = nodemailer.createTransport({
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendPasswordResetEmail = exports.sendVerificationEmail = void 0;
+const nodemailer_1 = __importDefault(require("nodemailer"));
+const dotenv_1 = __importDefault(require("dotenv"));
+const result = dotenv_1.default.config();
+console.log(result);
+const transporter = nodemailer_1.default.createTransport({
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
     auth: {
-        user: process.env.EMAIL_USER!,
-        pass: process.env.EMAIL_PASS!,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
     },
 });
-
-export const sendVerificationEmail = async (
-    email: string,
-    token: string
-) => {
+const sendVerificationEmail = async (email, token) => {
     const verificationLink = `${process.env.CLIENT_URL}/verify/${token}`;
-
     const mailOptions = {
         from: `"Shortify" <${process.env.EMAIL_USER}>`,
         to: email,
@@ -46,16 +48,11 @@ export const sendVerificationEmail = async (
             <p>This link expires in 1 hour.</p>
         `,
     };
-
     await transporter.sendMail(mailOptions);
 };
-
-export const sendPasswordResetEmail = async (
-    email: string,
-    token: string
-) => {
+exports.sendVerificationEmail = sendVerificationEmail;
+const sendPasswordResetEmail = async (email, token) => {
     const resetLink = `${process.env.CLIENT_URL}/reset-password/${token}`;
-
     const mailOptions = {
         from: `"Shortify" <${process.env.EMAIL_USER}>`,
         to: email,
@@ -85,6 +82,6 @@ export const sendPasswordResetEmail = async (
             <p>This link expires in 30 minutes.</p>
         `,
     };
-
     await transporter.sendMail(mailOptions);
 };
+exports.sendPasswordResetEmail = sendPasswordResetEmail;

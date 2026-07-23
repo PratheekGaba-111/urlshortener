@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import User from "../models/User";
 import { generateToken } from "../utils/generateToken";
 import crypto from "crypto";
-import { sendVerificationEmail } from "../services/email.service";
+import { sendVerificationEmail, sendPasswordResetEmail } from "../services/email.service";
+import { createPasswordResetToken, isPasswordResetTokenExpired } from "../utils/passwordReset";
 const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
@@ -158,4 +159,127 @@ export const verifyEmail = async(
         success : true,
         message : "Email verified successfully" 
     });
-} 
+};
+
+export const requestPasswordReset = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { email } = req.body;
+
+        if (!email?.trim() || !isValidEmail(email)) {
+            res.status(400).json({
+                success: false,
+                message: "A valid email is required"
+            });
+            return;
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            res.status(200).json({
+                success: true,
+                message: "If an account exists, a reset email has been sent."
+            });
+            return;
+        }
+
+        const resetToken = createPasswordResetToken();
+        user.resetToken = resetToken;
+        user.resetTokenExpires = new Date(Date.now() + 30 * 60 * 1000);
+        await user.save();
+
+        await sendPasswordResetEmail(user.email, resetToken);
+
+        res.status(200).json({
+            success: true,
+            message: "If an account exists, a reset email has been sent."
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+export const validatePasswordReset = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { token } = req.params;
+        const user = await User.findOne({
+            resetToken: token,
+            resetTokenExpires: { $gt: new Date() }
+        });
+
+        if (!user || isPasswordResetTokenExpired(user.resetTokenExpires!)) {
+            res.status(400).json({
+                success: false,
+                message: "Invalid or expired reset link."
+            });
+            return;
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Reset link is valid."
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+export const resetPassword = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { token } = req.params;
+        const { password } = req.body;
+
+        if (!password || password.length < 6) {
+            res.status(400).json({
+                success: false,
+                message: "Password must be at least 6 characters"
+            });
+            return;
+        }
+
+        const user = await User.findOne({
+            resetToken: token,
+            resetTokenExpires: { $gt: new Date() }
+        });
+
+        if (!user || isPasswordResetTokenExpired(user.resetTokenExpires!)) {
+            res.status(400).json({
+                success: false,
+                message: "Invalid or expired reset link."
+            });
+            return;
+        }
+
+        user.password = password;
+        user.resetToken = null;
+        user.resetTokenExpires = null;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Password updated successfully."
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};

@@ -1,8 +1,6 @@
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 
-const result = dotenv.config();
-console.log(result);
 
 console.log("EMAIL_USER =", process.env.EMAIL_USER);
 console.log("EMAIL_PASS =", process.env.EMAIL_PASS ? "Loaded" : "Missing");

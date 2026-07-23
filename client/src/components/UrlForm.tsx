@@ -64,6 +64,7 @@ const UrlForm = ({ onSuccess }: UrlFormProps) => {
           )}
         </button>
       </div>
+      <p className="url-form__hint">Paste a long link and build a polished short URL in one step.</p>
     </form>
   );
 };
