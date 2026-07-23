@@ -2,7 +2,7 @@ import {useState, type FormEvent} from "react";
 
 import { shortenUrl } from "../services/url.service";
 import type { UrlData } from "../types/url";
-
+import "./UrlForm.css";
 interface UrlFormProps{
     onSuccess : (data : UrlData) => void;
 }
@@ -33,17 +33,25 @@ const UrlForm = ({onSuccess} : UrlFormProps) => {
     };
 
     return(
-        <form onSubmit={handleSubmit}>
+        <form 
+            className="url-form"
+            onSubmit={handleSubmit}
+        >
+
             <input
                 type="url"
                 placeholder="Enter a long URL......"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
             />
-            <button type="submit" disabled={loading}>
-                {loading ? "Shortening...." : "Shorten URL"}
 
+            <button 
+                type="submit" 
+                disabled={loading}
+            >
+                {loading ? "Shortening...." : "Shorten URL"}
             </button>
+
         </form>
     );
 };

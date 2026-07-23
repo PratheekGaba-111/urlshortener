@@ -1,5 +1,5 @@
 import type { UrlData } from "../types/url";
-
+import "./UrlCard.css";
 interface UrlCardProps {
   urlData: UrlData | null;
 }

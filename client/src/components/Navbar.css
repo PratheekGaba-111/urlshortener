@@ -1,0 +1,30 @@
+.navbar {
+
+    width: 100%;
+
+    padding: 20px 50px;
+
+    background: white;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+
+}
+
+
+.navbar h2 {
+
+    font-size: 32px;
+
+    font-weight: 700;
+
+    letter-spacing: 1px;
+
+    color: #2563eb;
+
+}

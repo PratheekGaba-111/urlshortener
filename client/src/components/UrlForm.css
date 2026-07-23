@@ -1,0 +1,90 @@
+.url-form {
+
+    width: 100%;
+    max-width: 650px;
+
+    margin: 40px auto;
+
+    padding: 30px;
+
+    background: white;
+
+    border-radius: 18px;
+
+    display: flex;
+
+    gap: 15px;
+
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+
+}
+
+
+
+.url-form input {
+
+    flex: 1;
+
+    padding: 15px 18px;
+
+    border-radius: 12px;
+
+    border: 1px solid #d1d5db;
+
+    font-size: 16px;
+
+    outline: none;
+
+}
+
+
+
+.url-form input:focus {
+
+    border-color: #2563eb;
+
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+
+}
+
+
+
+.url-form button {
+
+    padding: 15px 25px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: #2563eb;
+
+    color: white;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+
+}
+
+
+
+.url-form button:hover {
+
+    background: #1d4ed8;
+
+}
+
+
+
+.url-form button:disabled {
+
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+}
