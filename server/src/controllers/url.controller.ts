@@ -101,3 +101,35 @@ export const redirectUrl = async (
     });
   }
 };
+
+export const getMyUrls = async (
+  req : Request,
+  res : Response
+) : Promise<void> => {
+  try{
+    const userId = req.user?.id;
+    if(!userId){
+      res.status(401).json({
+        message : "Unauthorized"
+      });
+      return;
+    }
+
+    const urls = await Url.find({
+      user : userId
+    }).sort({
+      createdAt : -1
+    });
+
+    res.status(200).json({
+      success : true,
+      data : urls
+    });
+  }catch(error){
+    res.status(500).json({
+      success : false,
+      message : "Internal Server Error"
+    })
+    return;
+  }
+}

@@ -35,3 +35,15 @@ export const shortenUrl = async(data : UrlRequest) : Promise<UrlResponse> => {
     */
     return response.data;
 }
+
+export const getMyUrls = async() => {
+    try{
+        const response = await api.get("/url/my-urls");
+
+        return response.data;
+    }
+    catch{
+        return null;
+    }
+};
+
