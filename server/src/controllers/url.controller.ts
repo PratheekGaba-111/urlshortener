@@ -122,8 +122,15 @@ export const getMyUrls = async (
     });
 
     res.status(200).json({
-      success : true,
-      data : urls
+      success:true,
+      data: urls.map((url)=>({
+          id: url._id,
+          originalUrl: url.originalUrl,
+          shortCode: url.shortCode,
+          shortUrl: `${process.env.BASE_URL}/${url.shortCode}`,
+          clicks: url.clicks,
+          createdAt: url.createdAt
+      }))
     });
   }catch(error){
     res.status(500).json({
