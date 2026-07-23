@@ -1,4 +1,4 @@
-import {Schema, model, InferSchemaType} from "mongoose";
+import mongoose, {Schema, model, InferSchemaType} from "mongoose";
 const urlSchema = new Schema(
     {
         originalUrl : {
@@ -15,6 +15,11 @@ const urlSchema = new Schema(
         clicks : {
             type : Number,
             default : 0
+        },
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true
         }
     },
     {

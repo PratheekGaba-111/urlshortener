@@ -8,8 +8,15 @@ export const shortenUrl = async (
   res: Response
 ): Promise<void> => {
   try {
+    const userId = req.user?.id;
     const { originalUrl } = req.body;
-
+    if (!userId) {
+      res.status(401).json({
+          success: false,
+          message: "Unauthorized"
+      });
+      return;
+    }
     if (!originalUrl) {
       res.status(400).json({
         success: false,
@@ -18,7 +25,7 @@ export const shortenUrl = async (
       return;
     }
 
-    const existingUrl = await Url.findOne({ originalUrl });
+    const existingUrl = await Url.findOne({ originalUrl, user : userId });
 
     if (existingUrl) {
       res.status(200).json({
@@ -40,6 +47,7 @@ export const shortenUrl = async (
     const newUrl = await Url.create({
       originalUrl,
       shortCode,
+      user : userId
     });
 
     res.status(201).json({

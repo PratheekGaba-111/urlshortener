@@ -15,7 +15,11 @@ export const auth = (
             });
         }
         const token = authHeader.split(" ")[1];
-
+        if(!token){
+        return res.status(401).json({
+            message: "Invalid authorization format"
+        });
+    }
         try{
             const decoded = verifyToken(token);
 
