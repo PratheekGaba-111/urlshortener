@@ -45,7 +45,10 @@ export const login = async(
             });
             return;
         }
+        // console.log(req.body);
+        // console.log(withEmail);
         const compared = await withEmail.comparePassword(password);
+        console.log(compared);
         if(compared){
             const token = generateToken(withEmail._id.toString());
             res.status(200).json({
@@ -61,6 +64,7 @@ export const login = async(
         }
 
     }catch(error){
+        console.log(error);
         res.status(500).json({
             message : "Internal Server Error"
         })

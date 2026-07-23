@@ -1,10 +1,20 @@
 import axios from "axios";
 import type{ UrlRequest, UrlResponse } from "../types/url";
 
-const API = "http://localhost:3333/api/url";
+const api = axios.create({
+    baseURL: "http://localhost:3333/api",
+});
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+
+    if(token){
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
 export const shortenUrl = async(data : UrlRequest) : Promise<UrlResponse> => {
-    const response = await axios.post<UrlResponse>(`${API}/shorten`, data);
+    const response = await api.post<UrlResponse>(`/url/shorten`, data);
     /*
     response looklike
         {

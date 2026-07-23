@@ -1,19 +1,18 @@
 import { useState } from "react"
-import Login from "../pages/Login"
-import checkDetails from "../services/user.service";
-import Home from "../pages/Home";
+import {login} from "../services/auth.service";
+
 import { useNavigate } from "react-router-dom";
-import type { LoginDetails } from "../types/user";
+import type { LoginDetails } from "../types/auth.types";
 const LoginForm = () => {
     const [loginDetails, setLoginDetails] = useState<LoginDetails>({email : "", password : ""});
     const [valid, setValid] = useState<Boolean>(false);
     const navigate = useNavigate();
     const handleSubmit = async(e : React.FormEvent) => {
         e.preventDefault();
-        const response = await checkDetails(loginDetails);
+        const response = await login(loginDetails);
         if(response){
-            localStorage.setIem("token", response.token);
-            navigate("/");
+            localStorage.setItem("token", response.token);
+            navigate("/home");
         }
         else{
             setValid(false);
