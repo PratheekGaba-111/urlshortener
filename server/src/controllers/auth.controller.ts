@@ -59,14 +59,17 @@ export const register = async(
             verificationToken,
             verificationTokenExpires
         });        
-        const token = generateToken(user._id.toString());
+        await sendVerificationEmail(
+            user.email,
+            verificationToken
+        );
         
         res.status(201).json({
-            message : "User registered successfully",
-            token,
-            user : toPublicUser(user)
+            success: true,
+            message: "Registration successful. Please check your email."
         });
     }catch(error){
+        console.error(error);
         res.status(500).json({
             message : "Internal Server Error"
         });
