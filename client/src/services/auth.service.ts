@@ -18,3 +18,9 @@ export const register = async (registerDetails : RegisterDetails) : Promise<Regi
         return null;
     }
 }
+
+export const verifyEmail = async(token : string) => {
+    const response  = await api.get(`/auth/verify/${token}`);
+
+    return response.data;
+}
