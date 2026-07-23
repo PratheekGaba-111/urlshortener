@@ -1,35 +1,74 @@
 import type { UrlData } from "../types/url";
-interface UrlCardProps{
-    urlData : UrlData | null;
+
+interface UrlCardProps {
+  urlData: UrlData | null;
 }
 
-const UrlCard = ({urlData} : UrlCardProps) => {
-    const handlecopy = async() => {
-        if (!urlData) return;
-        try {
+const UrlCard = ({ urlData }: UrlCardProps) => {
+  if (!urlData) return null;
 
-            await navigator.clipboard.writeText(urlData.shortUrl);
-            alert("Copied!");
-        }catch(error){
-            console.error(error);
-            alert("Failed to Copy!");
-        }
-    };
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(urlData.shortUrl);
+      alert("Copied!");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to copy!");
+    }
+  };
 
-    if(!urlData) return null;
+  return (
+    <div className="url-card">
+      <h2>Shortened URL</h2>
 
-    return (
-        <div className="url-card">
-            <h3>Short URL</h3>
-            <a href={urlData.shortUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-            >{urlData.shortUrl}</a>
+      <p>
+        <strong>Original URL:</strong>
+      </p>
+      <a
+        href={urlData.originalUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {urlData.originalUrl}
+      </a>
 
-            <button onClick={handlecopy}>
-                Copy the URL
-            </button>
-        </div>
-    );
+      <br />
+      <br />
+
+      <p>
+        <strong>Short URL:</strong>
+      </p>
+      <a
+        href={urlData.shortUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {urlData.shortUrl}
+      </a>
+
+      <br />
+      <br />
+
+      <p>
+        <strong>Short Code:</strong> {urlData.shortCode}
+      </p>
+
+      <p>
+        <strong>Clicks:</strong> {urlData.clicks}
+      </p>
+
+      <p>
+        <strong>Created At:</strong>{" "}
+        {new Date(urlData.createdAt).toLocaleString()}
+      </p>
+
+      <br />
+
+      <button onClick={handleCopy}>
+        📋 Copy URL
+      </button>
+    </div>
+  );
 };
+
 export default UrlCard;
