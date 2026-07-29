@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { LogOut, Menu, Moon, Sparkles, Sun, X, Zap, ChevronRight } from "lucide-react";
+import { LogOut, Menu, Moon, Sun, X, Zap, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "../hooks/useTheme";
 import { clearAuthToken, isAuthenticated } from "../utils/auth";
