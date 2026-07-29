@@ -3,6 +3,7 @@ import { shortenUrl } from "../services/url.service";
 import type { UrlData } from "../types/url";
 import { Link2, Sparkles, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTheme } from "../hooks/useTheme";
 
 interface UrlFormProps {
   onSuccess: (data: UrlData) => void;
@@ -11,6 +12,7 @@ interface UrlFormProps {
 const UrlForm = ({ onSuccess }: UrlFormProps) => {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const { theme } = useTheme();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -39,17 +41,17 @@ const UrlForm = ({ onSuccess }: UrlFormProps) => {
         transition={{ delay: 0.3 }}
       >
         <form 
-          className="group relative flex flex-col sm:flex-row gap-2 p-2 rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl focus-within:border-violet-500/30 transition-all duration-500" 
+          className={`group relative flex flex-col gap-2 rounded-3xl border p-2 shadow-2xl backdrop-blur-xl transition-all duration-500 sm:flex-row ${theme === "dark" ? "border-white/10 bg-white/[0.02] focus-within:border-violet-500/30" : "border-slate-200 bg-white shadow-slate-200/70 focus-within:border-violet-300"}`}
           onSubmit={handleSubmit}
         >
           <div className="relative flex-1 flex items-center">
-            <div className="absolute left-4 text-slate-500 group-focus-within:text-violet-400 transition-colors">
+            <div className={`absolute left-4 transition-colors ${theme === "dark" ? "text-slate-500 group-focus-within:text-violet-400" : "text-slate-400 group-focus-within:text-violet-500"}`}>
               <Link2 size={20} />
             </div>
             <input
               type="url"
               placeholder="Paste your long link here..."
-              className="w-full bg-transparent pl-12 pr-4 py-4 text-base text-white placeholder:text-slate-600 focus:outline-none"
+              className={`w-full bg-transparent py-4 pl-12 pr-4 text-base focus:outline-none ${theme === "dark" ? "text-white placeholder:text-slate-600" : "text-slate-900 placeholder:text-slate-400"}`}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               required
@@ -71,8 +73,8 @@ const UrlForm = ({ onSuccess }: UrlFormProps) => {
             )}
           </button>
         </form>
-        <p className="text-center mt-4 text-[10px] text-slate-600 uppercase tracking-widest font-bold">
-          Press <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10">Enter</kbd> to generate instantly
+        <p className={`mt-4 text-center text-[10px] font-bold uppercase tracking-widest ${theme === "dark" ? "text-slate-600" : "text-slate-500"}`}>
+          Press <kbd className={`rounded border px-1.5 py-0.5 ${theme === "dark" ? "border-white/10 bg-white/5" : "border-slate-200 bg-white"}`}>Enter</kbd> to generate instantly
         </p>
       </motion.div>
     </div>

@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { login, requestPasswordReset } from "../services/auth.service";
 import { useNavigate } from "react-router-dom";
 import type { LoginDetails } from "../types/auth.types";
-import { ArrowRight, Lock, Mail, Send, Loader2 } from "lucide-react";
+import { ArrowRight, Lock, Mail, Send, Loader2, Eye, EyeOff } from "lucide-react";
+import { useTheme } from "../hooks/useTheme";
 
 const LoginForm = () => {
   const [loginDetails, setLoginDetails] = useState<LoginDetails>({
@@ -16,6 +17,8 @@ const LoginForm = () => {
   const [feedback, setFeedback] = useState<string>("");
   const [feedbackTone, setFeedbackTone] = useState<"success" | "error">("success");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const { theme } = useTheme();
 
   const navigate = useNavigate();
 
@@ -66,10 +69,10 @@ const LoginForm = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className={`p-4 rounded-2xl text-sm font-medium border ${
+            className={`rounded-2xl border p-4 text-sm font-medium ${
               feedbackTone === "error" 
-                ? "bg-red-500/10 border-red-500/20 text-red-400" 
-                : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                ? "border-red-500/20 bg-red-500/10 text-red-400"
+                : "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
             }`}
             role="status"
           >
@@ -80,7 +83,7 @@ const LoginForm = () => {
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1" htmlFor="email">Email</label>
+          <label className={`ml-1 text-sm font-semibold uppercase tracking-[0.2em] ${theme === "dark" ? "text-slate-500" : "text-slate-600"}`} htmlFor="email">Email</label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-violet-400 transition-colors">
               <Mail size={18} />
@@ -89,7 +92,7 @@ const LoginForm = () => {
               id="email"
               type="email"
               placeholder="you@company.com"
-              className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all placeholder:text-slate-600"
+              className={`w-full rounded-2xl border py-4 pl-12 pr-4 text-base transition-all focus:outline-none focus:ring-2 focus:ring-violet-500/50 ${theme === "dark" ? "border-white/10 bg-white/5 text-white placeholder:text-slate-600" : "border-slate-200 bg-white text-slate-900 shadow-sm placeholder:text-slate-400"}`}
               required
               value={mode === "login" ? loginDetails.email : resetEmail}
               onChange={(e) => {
@@ -106,10 +109,10 @@ const LoginForm = () => {
         {mode === "login" && (
           <div className="space-y-2">
             <div className="flex items-center justify-between ml-1">
-              <label className="text-xs font-bold uppercase tracking-widest text-slate-500" htmlFor="password">Password</label>
+              <label className={`text-sm font-semibold uppercase tracking-[0.2em] ${theme === "dark" ? "text-slate-500" : "text-slate-600"}`} htmlFor="password">Password</label>
               <button 
                 type="button" 
-                className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+                className="text-sm text-violet-400 transition-colors hover:text-violet-300"
                 onClick={() => setMode("forgot")}
               >
                 Forgot password?
@@ -121,13 +124,21 @@ const LoginForm = () => {
               </div>
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all placeholder:text-slate-600"
+                className={`w-full rounded-2xl border py-4 pl-12 pr-12 text-base transition-all focus:outline-none focus:ring-2 focus:ring-violet-500/50 ${theme === "dark" ? "border-white/10 bg-white/5 text-white placeholder:text-slate-600" : "border-slate-200 bg-white text-slate-900 shadow-sm placeholder:text-slate-400"}`}
                 required
                 value={loginDetails.password}
                 onChange={(e) => setLoginDetails(prev => ({ ...prev, password: e.target.value }))}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(prev => !prev)}
+                className={`absolute inset-y-0 right-4 flex items-center transition-colors ${theme === "dark" ? "text-slate-500 hover:text-violet-400" : "text-slate-500 hover:text-violet-600"}`}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
         )}
@@ -136,7 +147,7 @@ const LoginForm = () => {
       <button 
         type="submit" 
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl transition-all hover:shadow-xl hover:shadow-violet-500/20 active:scale-[0.98]"
+        className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl transition-all hover:shadow-xl hover:shadow-violet-500/20 active:scale-[0.98] text-base"
       >
         {loading ? (
           <Loader2 size={20} className="animate-spin" />
@@ -151,7 +162,7 @@ const LoginForm = () => {
       {mode === "forgot" && (
         <button 
           type="button" 
-          className="w-full text-center text-sm text-slate-500 hover:text-slate-300 transition-colors"
+          className={`w-full text-center text-sm transition-colors ${theme === "dark" ? "text-slate-500 hover:text-slate-300" : "text-slate-600 hover:text-slate-800"}`}
           onClick={() => setMode("login")}
         >
           Back to sign in

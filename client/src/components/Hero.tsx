@@ -1,12 +1,15 @@
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
+import { useTheme } from "../hooks/useTheme";
 
 export const Hero = () => {
+  const { theme } = useTheme();
+
   return (
     <section className="relative pt-32 pb-16 overflow-hidden">
       {/* Background Subtle Gradient */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-violet-600/10 blur-[120px] rounded-full" />
+        <div className={`absolute top-0 left-1/2 h-96 w-full max-w-4xl -translate-x-1/2 rounded-full blur-[120px] ${theme === "dark" ? "bg-violet-600/10" : "bg-violet-400/15"}`} />
       </div>
 
       <div className="container mx-auto px-4 text-center">
@@ -14,7 +17,7 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/5 border border-violet-500/10 text-violet-400/80 text-[10px] font-bold uppercase tracking-widest mb-8"
+          className={`mb-8 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${theme === "dark" ? "border-violet-500/10 bg-violet-500/5 text-violet-400/80" : "border-violet-200 bg-violet-50 text-violet-600"}`}
         >
           <Sparkles size={12} />
           <span>Professional Link Management</span>
@@ -24,7 +27,7 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-[1.1] text-white"
+          className={`mb-6 text-5xl font-black leading-[1.1] tracking-tight md:text-7xl ${theme === "dark" ? "text-white" : "text-slate-900"}`}
         >
           Shorten. Track. <br />
           <span className="gradient-text">Dominate.</span>
@@ -34,7 +37,7 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg text-slate-500 max-w-xl mx-auto mb-10 leading-relaxed"
+          className={`mx-auto mb-10 max-w-xl text-lg leading-relaxed ${theme === "dark" ? "text-slate-500" : "text-slate-600"}`}
         >
           Transform your messy links into clean, trackable marketing assets. 
           Built for teams who value precision and speed.

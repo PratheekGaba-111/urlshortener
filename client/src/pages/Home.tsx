@@ -9,6 +9,7 @@ import { Hero } from "../components/Hero";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutGrid, List, Search } from "lucide-react";
 import { Toast, type ToastType } from "../components/Toast";
+import { useTheme } from "../hooks/useTheme";
 
 const Home = () => {
   const [urlData, setUrlData] = useState<UrlData | null>(null);
@@ -16,6 +17,7 @@ const Home = () => {
   const [clickUpdate, setClickUpdate] = useState<UrlClickUpdate | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const latestLinkRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
 
   // Toast State
   const [toast, setToast] = useState<{ isVisible: boolean; message: string; type: ToastType }>({
@@ -53,7 +55,7 @@ const Home = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-[#0a0a0c] text-white selection:bg-violet-500/30"
+      className={`min-h-screen transition-colors duration-300 ${theme === "dark" ? "bg-[#0a0a0c] text-white selection:bg-violet-500/30" : "bg-slate-50 text-slate-900 selection:bg-violet-200"}`}
     >
       <Navbar />
       
@@ -74,9 +76,9 @@ const Home = () => {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="mb-20"
               >
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-500">Latest Generated Asset</h2>
+                <div className="mb-6 flex items-center gap-3">
+                  <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                  <h2 className={`text-[10px] font-bold uppercase tracking-[0.3em] ${theme === "dark" ? "text-emerald-500" : "text-emerald-600"}`}>Latest Short Link</h2>
                 </div>
                 <UrlCard urlData={urlData} featured />
               </motion.div>
@@ -84,10 +86,10 @@ const Home = () => {
           </AnimatePresence>
 
           <div className="space-y-10">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-8">
+            <div className={`flex flex-col justify-between gap-6 border-b pb-8 md:flex-row md:items-end ${theme === "dark" ? "border-white/5" : "border-slate-200"}`}>
               <div>
-                <h2 className="text-2xl font-bold mb-1">Portfolio</h2>
-                <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">Active link infrastructure</p>
+                <h2 className="mb-1 text-2xl font-bold">Your Links</h2>
+                <p className={`text-xs font-bold uppercase tracking-widest ${theme === "dark" ? "text-slate-500" : "text-slate-500"}`}>Manage your short links</p>
               </div>
 
               <div className="flex items-center gap-3">
@@ -96,20 +98,20 @@ const Home = () => {
                   <input 
                     type="text" 
                     placeholder="Search assets..." 
-                    className="bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-violet-500/50 transition-all w-40"
+                    className={`w-40 rounded-xl border pl-9 pr-4 py-2 text-xs transition-all focus:outline-none focus:border-violet-500/50 ${theme === "dark" ? "border-white/10 bg-white/5 text-white" : "border-slate-200 bg-white text-slate-900"}`}
                   />
                 </div>
                 
-                <div className="flex items-center bg-white/5 rounded-xl p-1 border border-white/5">
+                <div className={`flex items-center rounded-xl border p-1 ${theme === "dark" ? "border-white/5 bg-white/5" : "border-slate-200 bg-white"}`}>
                   <button 
                     onClick={() => setViewMode("grid")}
-                    className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white/10 text-white shadow-sm" : "text-slate-500 hover:text-slate-300"}`}
+                    className={`rounded-lg p-1.5 transition-all ${viewMode === "grid" ? (theme === "dark" ? "bg-white/10 text-white shadow-sm" : "bg-violet-100 text-violet-700 shadow-sm") : theme === "dark" ? "text-slate-500 hover:text-slate-300" : "text-slate-500 hover:text-slate-700"}`}
                   >
                     <LayoutGrid size={16} />
                   </button>
                   <button 
                     onClick={() => setViewMode("list")}
-                    className={`p-1.5 rounded-lg transition-all ${viewMode === "list" ? "bg-white/10 text-white shadow-sm" : "text-slate-500 hover:text-slate-300"}`}
+                    className={`rounded-lg p-1.5 transition-all ${viewMode === "list" ? (theme === "dark" ? "bg-white/10 text-white shadow-sm" : "bg-violet-100 text-violet-700 shadow-sm") : theme === "dark" ? "text-slate-500 hover:text-slate-300" : "text-slate-500 hover:text-slate-700"}`}
                   >
                     <List size={16} />
                   </button>
@@ -129,9 +131,9 @@ const Home = () => {
         onClose={() => setToast({ ...toast, isVisible: false })} 
       />
 
-      <footer className="border-t border-white/5 py-12 bg-white/[0.01]">
+      <footer className={`border-t py-12 ${theme === "dark" ? "border-white/5 bg-white/[0.01]" : "border-slate-200 bg-white/70"}`}>
         <div className="container mx-auto px-4 text-center">
-          <p className="text-slate-600 text-[10px] tracking-[0.2em] uppercase font-bold">
+          <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${theme === "dark" ? "text-slate-600" : "text-slate-500"}`}>
             © 2026 Shortify • Built for Precision
           </p>
         </div>

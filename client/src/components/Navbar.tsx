@@ -11,7 +11,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
-  const isDashboard = location.pathname === "/home";
+  const isHome = location.pathname === "/home";
   const authenticated = isAuthenticated();
   const navigate = useNavigate();
 
@@ -38,18 +38,18 @@ const Navbar = () => {
         className={cn(
           "mx-auto max-w-5xl flex h-16 items-center justify-between px-6 rounded-2xl border transition-all duration-300",
           scrolled 
-            ? "bg-[#0a0a0c]/80 backdrop-blur-xl border-white/10 shadow-2xl shadow-black/50" 
-            : "bg-transparent border-transparent"
+            ? (theme === "dark" ? "bg-[#0a0a0c]/80 backdrop-blur-xl border-white/10 shadow-2xl shadow-black/50" : "bg-white/80 backdrop-blur-xl border-slate-200 shadow-lg shadow-slate-200/60")
+            : (theme === "dark" ? "bg-transparent border-transparent" : "bg-transparent border-transparent")
         )}
       >
-        <Link to="/home" className="flex items-center gap-2 group">
+        <Link to="/home" className="group flex items-center gap-2">
           <motion.div 
             whileHover={{ scale: 1.1, rotate: 10 }}
             className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-500/20"
           >
             <Zap size={20} fill="currentColor" />
           </motion.div>
-          <span className="text-xl font-bold tracking-tight text-white group-hover:text-violet-400 transition-colors">Shortify</span>
+          <span className={`text-xl font-bold tracking-tight transition-colors ${theme === "dark" ? "text-white group-hover:text-violet-400" : "text-slate-900 group-hover:text-violet-600"}`}>Shortify</span>
         </Link>
 
         {/* Desktop Links */}
@@ -59,17 +59,17 @@ const Navbar = () => {
               to="/home"
               className={cn(
                 "px-4 py-1.5 text-sm font-medium rounded-full transition-all",
-                isDashboard ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-white"
+                isHome ? (theme === "dark" ? "bg-white/10 text-white shadow-sm" : "bg-violet-100 text-violet-700 shadow-sm") : (theme === "dark" ? "text-slate-400 hover:text-white" : "text-slate-500 hover:text-slate-900")
               )}
             >
-              Dashboard
+              Home
             </Link>
           </div>
           
           <div className="flex items-center gap-4">
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-slate-400 transition-all hover:bg-white/5 hover:text-white"
+              className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all ${theme === "dark" ? "border-white/10 text-slate-400 hover:bg-white/5 hover:text-white" : "border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}
               onClick={toggleTheme}
             >
               {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
@@ -78,7 +78,7 @@ const Navbar = () => {
             {authenticated ? (
               <button 
                 type="button" 
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/5 hover:border-red-500/20 transition-all" 
+                className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition-all ${theme === "dark" ? "border-white/10 bg-white/5 text-slate-400 hover:border-red-500/20 hover:bg-red-500/5 hover:text-red-400" : "border-slate-200 bg-white text-slate-700 hover:border-red-200 hover:bg-red-50 hover:text-red-500"}`}
                 onClick={handleLogout}
               >
                 <LogOut size={16} />
@@ -86,7 +86,7 @@ const Navbar = () => {
               </button>
             ) : (
               <div className="flex items-center gap-3">
-                <Link to="/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">
+                <Link to="/login" className={`text-sm font-medium transition-colors ${theme === "dark" ? "text-slate-400 hover:text-white" : "text-slate-600 hover:text-slate-900"}`}>
                   Login
                 </Link>
                 <Link 
@@ -118,7 +118,7 @@ const Navbar = () => {
         className="absolute top-24 left-4 right-4 bg-[#0a0a0c]/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:hidden shadow-2xl"
       >
         <div className="flex flex-col gap-4">
-          <Link to="/home" className="text-lg font-medium text-white p-2" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+          <Link to="/home" className={`p-2 text-lg font-medium ${theme === "dark" ? "text-white" : "text-slate-900"}`} onClick={() => setMenuOpen(false)}>Home</Link>
           <div className="h-px bg-white/5 my-2" />
           {authenticated ? (
             <button onClick={handleLogout} className="flex items-center gap-2 text-lg font-medium text-red-400 p-2">
@@ -126,7 +126,7 @@ const Navbar = () => {
             </button>
           ) : (
             <>
-              <Link to="/login" className="text-lg font-medium text-white p-2" onClick={() => setMenuOpen(false)}>Login</Link>
+              <Link to="/login" className={`p-2 text-lg font-medium ${theme === "dark" ? "text-white" : "text-slate-900"}`} onClick={() => setMenuOpen(false)}>Login</Link>
               <Link to="/register" className="flex items-center justify-center gap-2 rounded-2xl bg-violet-600 py-4 text-lg font-bold text-white" onClick={() => setMenuOpen(false)}>
                 Start Free <ChevronRight size={20} />
               </Link>
