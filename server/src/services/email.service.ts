@@ -10,11 +10,21 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS!,
     },
 });
-
+transporter.verify((error, success) => {
+    if(error){
+        console.log("SMTP ERROR:", error);
+    } else {
+        console.log("SMTP READY");
+    }
+});
 export const sendVerificationEmail = async (
     email: string,
     token: string
 ) => {
+    console.log("EMAIL_USER:", process.env.EMAIL_USER);
+    console.log("EMAIL_PASS exists:", !!process.env.EMAIL_PASS);
+    console.log("CLIENT_URL:", process.env.CLIENT_URL);
+    //
     const verificationLink = `${process.env.CLIENT_URL}/verify/${token}`;
 
     const mailOptions = {
