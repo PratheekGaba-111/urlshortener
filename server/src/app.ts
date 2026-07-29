@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authLimiter);
 app.use("/api/url", urlLimiter);
-
+app.set("trust proxy", 1);
 // Health checkk
 app.get("/", (req, res) => {
     res.json({
