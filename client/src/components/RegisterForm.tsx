@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { RegisterDetails } from "../types/auth.types";
 import { register } from "../services/auth.service";
 import { ArrowRight, Lock, Mail, User, Loader2 } from "lucide-react";
@@ -21,17 +22,14 @@ const RegisterForm = () => {
 
     try {
       const response = await register(registerDetails);
-
       if (!response) {
         setHasError(true);
         setMessage("Registration failed. Please try again.");
         return;
       }
-
       setHasError(false);
       setMessage(response.message);
     } catch (error) {
-      console.error(error);
       setHasError(true);
       setMessage("Something went wrong. Please try again.");
     } finally {
@@ -40,23 +38,33 @@ const RegisterForm = () => {
   };
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
-      {message && (
-        <div 
-          className={`p-4 rounded-xl text-sm font-medium border ${
-            hasError 
-              ? "bg-red-500/10 border-red-500/20 text-red-400" 
-              : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-          }`}
-          role="status"
-        >
-          {message}
-        </div>
-      )}
+    <motion.form 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6" 
+      onSubmit={handleSubmit}
+    >
+      <AnimatePresence mode="wait">
+        {message && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className={`p-4 rounded-2xl text-sm font-medium border ${
+              hasError 
+                ? "bg-red-500/10 border-red-500/20 text-red-400" 
+                : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+            }`}
+            role="status"
+          >
+            {message}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-300" htmlFor="name">Full Name</label>
+          <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1" htmlFor="name">Full Name</label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-violet-400 transition-colors">
               <User size={18} />
@@ -65,7 +73,7 @@ const RegisterForm = () => {
               id="name"
               type="text"
               placeholder="John Doe"
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all placeholder:text-slate-600"
+              className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all placeholder:text-slate-600"
               required
               value={registerDetails.name}
               onChange={(e) => setRegisterDetails(prev => ({ ...prev, name: e.target.value }))}
@@ -74,7 +82,7 @@ const RegisterForm = () => {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-300" htmlFor="email">Email</label>
+          <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1" htmlFor="email">Email</label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-violet-400 transition-colors">
               <Mail size={18} />
@@ -83,7 +91,7 @@ const RegisterForm = () => {
               id="email"
               type="email"
               placeholder="you@company.com"
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all placeholder:text-slate-600"
+              className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all placeholder:text-slate-600"
               required
               value={registerDetails.email}
               onChange={(e) => setRegisterDetails(prev => ({ ...prev, email: e.target.value }))}
@@ -92,7 +100,7 @@ const RegisterForm = () => {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-300" htmlFor="password">Password</label>
+          <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1" htmlFor="password">Password</label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-violet-400 transition-colors">
               <Lock size={18} />
@@ -101,7 +109,7 @@ const RegisterForm = () => {
               id="password"
               type="password"
               placeholder="••••••••"
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all placeholder:text-slate-600"
+              className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all placeholder:text-slate-600"
               required
               value={registerDetails.password}
               onChange={(e) => setRegisterDetails(prev => ({ ...prev, password: e.target.value }))}
@@ -113,18 +121,18 @@ const RegisterForm = () => {
       <button 
         type="submit" 
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-violet-500/20 active:scale-[0.98]"
+        className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl transition-all hover:shadow-xl hover:shadow-violet-500/20 active:scale-[0.98]"
       >
         {loading ? (
           <Loader2 size={20} className="animate-spin" />
         ) : (
           <>
-            <span>Create account</span>
+            <span>Create Account</span>
             <ArrowRight size={18} />
           </>
         )}
       </button>
-    </form>
+    </motion.form>
   );
 };
 

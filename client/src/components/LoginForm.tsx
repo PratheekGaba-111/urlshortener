@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { login, requestPasswordReset } from "../services/auth.service";
 import { useNavigate } from "react-router-dom";
 import type { LoginDetails } from "../types/auth.types";
@@ -37,7 +38,6 @@ const LoginForm = () => {
       }
 
       const response = await login(loginDetails);
-
       if (response) {
         localStorage.setItem("token", response.token);
         navigate("/home");
@@ -46,31 +46,41 @@ const LoginForm = () => {
         setFeedback("Invalid credentials. Please check your email and password.");
       }
     } catch (err) {
-        setFeedbackTone("error");
-        setFeedback("Something went wrong. Please try again.");
+      setFeedbackTone("error");
+      setFeedback("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
-      {feedback && (
-        <div 
-          className={`p-4 rounded-xl text-sm font-medium border ${
-            feedbackTone === "error" 
-              ? "bg-red-500/10 border-red-500/20 text-red-400" 
-              : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-          }`}
-          role="status"
-        >
-          {feedback}
-        </div>
-      )}
+    <motion.form 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6" 
+      onSubmit={handleSubmit}
+    >
+      <AnimatePresence mode="wait">
+        {feedback && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className={`p-4 rounded-2xl text-sm font-medium border ${
+              feedbackTone === "error" 
+                ? "bg-red-500/10 border-red-500/20 text-red-400" 
+                : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+            }`}
+            role="status"
+          >
+            {feedback}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-300" htmlFor="email">Email</label>
+          <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1" htmlFor="email">Email</label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-violet-400 transition-colors">
               <Mail size={18} />
@@ -79,7 +89,7 @@ const LoginForm = () => {
               id="email"
               type="email"
               placeholder="you@company.com"
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all placeholder:text-slate-600"
+              className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all placeholder:text-slate-600"
               required
               value={mode === "login" ? loginDetails.email : resetEmail}
               onChange={(e) => {
@@ -95,11 +105,11 @@ const LoginForm = () => {
 
         {mode === "login" && (
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-slate-300" htmlFor="password">Password</label>
+            <div className="flex items-center justify-between ml-1">
+              <label className="text-xs font-bold uppercase tracking-widest text-slate-500" htmlFor="password">Password</label>
               <button 
                 type="button" 
-                className="text-xs text-violet-400 hover:text-violet-300"
+                className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
                 onClick={() => setMode("forgot")}
               >
                 Forgot password?
@@ -113,7 +123,7 @@ const LoginForm = () => {
                 id="password"
                 type="password"
                 placeholder="••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all placeholder:text-slate-600"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all placeholder:text-slate-600"
                 required
                 value={loginDetails.password}
                 onChange={(e) => setLoginDetails(prev => ({ ...prev, password: e.target.value }))}
@@ -126,13 +136,13 @@ const LoginForm = () => {
       <button 
         type="submit" 
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-violet-500/20 active:scale-[0.98]"
+        className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl transition-all hover:shadow-xl hover:shadow-violet-500/20 active:scale-[0.98]"
       >
         {loading ? (
           <Loader2 size={20} className="animate-spin" />
         ) : (
           <>
-            <span>{mode === "login" ? "Sign in" : "Send reset link"}</span>
+            <span>{mode === "login" ? "Sign In" : "Send Reset Link"}</span>
             {mode === "login" ? <ArrowRight size={18} /> : <Send size={18} />}
           </>
         )}
@@ -141,13 +151,13 @@ const LoginForm = () => {
       {mode === "forgot" && (
         <button 
           type="button" 
-          className="w-full text-center text-sm text-slate-500 hover:text-slate-300"
+          className="w-full text-center text-sm text-slate-500 hover:text-slate-300 transition-colors"
           onClick={() => setMode("login")}
         >
           Back to sign in
         </button>
       )}
-    </form>
+    </motion.form>
   );
 };
 

@@ -1,78 +1,101 @@
 import LoginForm from "../components/LoginForm";
 import { Link } from "react-router-dom";
-import { Zap, BarChart3, Shield, Sparkles } from "lucide-react";
+import { Zap, BarChart3, Sparkles, ChevronLeft } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Login = () => {
   return (
-    <main className="min-h-screen bg-[#0a0a0c] flex flex-col md:flex-row overflow-hidden">
+    <main className="min-h-screen bg-[#0a0a0c] flex flex-col lg:flex-row overflow-hidden">
       {/* Left Side: Branding & Info */}
-      <section className="relative flex-1 flex flex-col justify-center p-8 md:p-16 lg:p-24 overflow-hidden">
-        {/* Background Glows */}
+      <section className="relative flex-1 flex flex-col justify-center p-8 md:p-16 lg:p-24 overflow-hidden bg-white/[0.01]">
         <div className="absolute top-0 left-0 w-full h-full bg-violet-600/5 blur-[120px] -z-10 rounded-full scale-150" />
         
         <div className="relative z-10 max-w-xl">
-          <Link to="/" className="inline-flex items-center gap-2 mb-12 transition-opacity hover:opacity-80">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-600 text-white shadow-lg shadow-violet-500/20">
+          <Link to="/" className="inline-flex items-center gap-2 mb-12 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-500/20 group-hover:rotate-12 transition-transform">
               <Zap size={22} fill="currentColor" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-white">Shortify</span>
+            <span className="text-2xl font-bold tracking-tight text-white">Shortify</span>
           </Link>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-medium mb-6">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-bold uppercase tracking-widest mb-8"
+          >
             <Sparkles size={14} />
-            <span>Shortify Cloud</span>
-          </div>
+            <span>Secure Access</span>
+          </motion.div>
 
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-tight text-white"
+          >
             Welcome back to your <br />
-            <span className="gradient-text">link hub</span>
-          </h1>
+            <span className="gradient-text">link hub.</span>
+          </motion.h1>
           
-          <p className="text-lg text-slate-400 mb-12">
-            Sign in to create polished short links, monitor traction, and keep your campaigns moving.
-          </p>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-xl text-slate-400 mb-12 leading-relaxed"
+          >
+            Access your workspace to manage campaigns, monitor traction, and optimize your conversion paths.
+          </motion.p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="flex items-start gap-4">
-              <div className="h-10 w-10 shrink-0 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-violet-400">
-                <Zap size={20} />
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-8"
+          >
+            <div className="space-y-3">
+              <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-violet-400 shadow-xl shadow-black/20">
+                <Zap size={24} />
               </div>
-              <div>
-                <h3 className="text-white font-semibold">4x faster</h3>
-                <p className="text-sm text-slate-500">Launch links in seconds</p>
-              </div>
+              <h3 className="text-white font-bold text-lg">Instant Launch</h3>
+              <p className="text-sm text-slate-500">Shorten and deploy links in under 2 seconds.</p>
             </div>
-            <div className="flex items-start gap-4">
-              <div className="h-10 w-10 shrink-0 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-blue-400">
-                <BarChart3 size={20} />
+            <div className="space-y-3">
+              <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-blue-400 shadow-xl shadow-black/20">
+                <BarChart3 size={24} />
               </div>
-              <div>
-                <h3 className="text-white font-semibold">Live signal</h3>
-                <p className="text-sm text-slate-500">Watch clicks roll in</p>
-              </div>
+              <h3 className="text-white font-bold text-lg">Live Analytics</h3>
+              <p className="text-sm text-slate-500">Real-time click tracking with geographic insights.</p>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Right Side: Login Form */}
-      <section className="flex-1 flex items-center justify-center p-8 bg-white/[0.02] border-l border-white/5">
-        <div className="w-full max-w-md space-y-8">
-          <div className="text-center md:text-left">
-            <h2 className="text-2xl font-bold">Sign in</h2>
-            <p className="text-slate-500 mt-2">Enter your credentials to access your dashboard</p>
+      <section className="flex-1 flex items-center justify-center p-8 bg-[#0a0a0c] relative">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.05),transparent_70%)]" />
+        
+        <div className="w-full max-w-md space-y-10 relative z-10">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-white mb-3">Sign In</h2>
+            <p className="text-slate-500">Enter your credentials to access your dashboard</p>
           </div>
           
-          <div className="glass-card p-8 shadow-2xl shadow-violet-500/5">
+          <div className="glass-card p-10 shadow-2xl shadow-violet-500/5 border-white/10">
             <LoginForm />
           </div>
 
-          <p className="text-center text-sm text-slate-500">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-violet-400 font-semibold hover:text-violet-300 transition-colors">
-              Create one
+          <div className="flex flex-col items-center gap-6">
+            <p className="text-sm text-slate-500">
+              Don't have an account?{" "}
+              <Link to="/register" className="text-violet-400 font-bold hover:text-violet-300 transition-colors">
+                Create Account
+              </Link>
+            </p>
+            <Link to="/" className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-400 transition-colors uppercase tracking-widest">
+              <ChevronLeft size={14} />
+              Back to Home
             </Link>
-          </p>
+          </div>
         </div>
       </section>
     </main>
