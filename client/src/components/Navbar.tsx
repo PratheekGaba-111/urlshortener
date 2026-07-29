@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { LogOut, Menu, Moon, Sun, X, Zap, ChevronRight } from "lucide-react";
+import { LogOut, Menu, Moon, Sun, X, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "../hooks/useTheme";
 import { clearAuthToken, isAuthenticated } from "../utils/auth";
@@ -42,16 +42,24 @@ const Navbar = () => {
             : (theme === "dark" ? "bg-transparent border-transparent" : "bg-transparent border-transparent")
         )}
       >
-        <Link to="/home" className="group flex items-center gap-2">
-          <motion.div 
-            whileHover={{ scale: 1.1, rotate: 10 }}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-500/20"
-          >
-            <Zap size={20} fill="currentColor" />
-          </motion.div>
-          <span className={`text-xl font-bold tracking-tight transition-colors ${theme === "dark" ? "text-white group-hover:text-violet-400" : "text-slate-900 group-hover:text-violet-600"}`}>Shortify</span>
-        </Link>
+       
+      <Link to="/home" className="group flex items-center gap-2">
+          <motion.img
+            src="/llgg.png"
+            alt="Shortify Logo"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            className="h-10 w-10 object-contain"
+          />
 
+          <span className={`text-xl font-bold tracking-tight ${
+            theme === "dark"
+              ? "text-white group-hover:text-violet-400"
+              : "text-slate-900 group-hover:text-violet-600"
+          }`}>
+            Shortify
+          </span>
+        </Link>
         {/* Desktop Links */}
         <div className="hidden items-center gap-6 md:flex">
           <div className="flex items-center gap-1 bg-white/5 rounded-full p-1 border border-white/5">

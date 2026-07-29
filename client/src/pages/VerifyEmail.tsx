@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { verifyEmail } from "../services/auth.service";
-import { Loader2, CheckCircle2, XCircle, Zap, ChevronLeft } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 
 const VerifyEmail = () => {
@@ -50,9 +50,13 @@ const VerifyEmail = () => {
       <div className="w-full max-w-md relative z-10 text-center">
         <div className="mb-10">
           <Link to="/" className="inline-flex items-center gap-2 mb-8 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-500/20 group-hover:rotate-12 transition-transform">
-              <Zap size={22} fill="currentColor" />
-            </div>
+            <motion.img
+              src="/llgg.png"
+              alt="Shortify Logo"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="h-10 w-10 object-contain transition-transform"
+            />
             <span className="text-2xl font-bold tracking-tight text-white">Shortify</span>
           </Link>
           <h1 className="text-3xl font-bold text-white mb-2">Account Verification</h1>

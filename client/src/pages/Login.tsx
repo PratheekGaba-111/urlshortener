@@ -1,6 +1,5 @@
 import LoginForm from "../components/LoginForm";
 import { Link, useLocation } from "react-router-dom";
-import { Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "../hooks/useTheme";
 
@@ -22,9 +21,13 @@ const Login = () => {
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-10">
           <Link to="/" className="inline-flex items-center gap-2 mb-8 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-500/20 group-hover:rotate-12 transition-transform">
-              <Zap size={22} fill="currentColor" />
-            </div>
+            <motion.img
+              src="/llgg.png"
+              alt="Shortify Logo"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="h-10 w-10 object-contain transition-transform"
+            />
             <span className={`text-2xl font-bold tracking-tight ${theme === "dark" ? "text-white" : "text-slate-900"}`}>Shortify</span>
           </Link>
           
