@@ -1,6 +1,5 @@
 import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-const result = dotenv.config();
+
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
@@ -64,6 +63,11 @@ export const sendPasswordResetEmail = async (
     email: string,
     token: string
 ) => {
+    console.log("RESET EMAIL:", email);
+    console.log("EMAIL_USER:", process.env.EMAIL_USER);
+    console.log("EMAIL_PASS exists:", !!process.env.EMAIL_PASS);
+    console.log("CLIENT_URL:", process.env.CLIENT_URL);
+
     const resetLink = `${process.env.CLIENT_URL}/reset-password/${token}`;
 
     const mailOptions = {
@@ -72,29 +76,17 @@ export const sendPasswordResetEmail = async (
         subject: "Reset your Shortify password",
         html: `
             <h2>Reset your password 🔐</h2>
-
-            <p>We received a request to reset your Shortify password.</p>
-
-            <p>Click the button below to choose a new password.</p>
-
-            <a
-                href="${resetLink}"
-                style="
-                    display:inline-block;
-                    padding:12px 24px;
-                    background:#7c3aed;
-                    color:#fff;
-                    text-decoration:none;
-                    border-radius:8px;
-                    font-weight:bold;
-                "
-            >
+            <a href="${resetLink}">
                 Reset Password
             </a>
-
-            <p>This link expires in 30 minutes.</p>
         `,
     };
 
-    await transporter.sendMail(mailOptions);
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log("RESET MAIL SENT:", info.messageId);
+    } catch(error) {
+        console.error("RESET MAIL ERROR:", error);
+        throw error;
+    }
 };
