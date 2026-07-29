@@ -1,56 +1,78 @@
 import LoginForm from "../components/LoginForm";
 import { Link } from "react-router-dom";
-import "../styles/Auth.css";
+import { Zap, BarChart3, Shield, Sparkles } from "lucide-react";
 
 const Login = () => {
   return (
-    <main className="auth-page">
-      <div className="auth-blob auth-blob--one" />
-      <div className="auth-blob auth-blob--two" />
-      <section className="auth-shell" aria-labelledby="login-title">
-        <div className="auth-copy">
-          <span className="auth-kicker">Shortify cloud</span>
-          <h1 id="login-title">
-            Welcome back to your <span className="gradient-text">link hub</span>
+    <main className="min-h-screen bg-[#0a0a0c] flex flex-col md:flex-row overflow-hidden">
+      {/* Left Side: Branding & Info */}
+      <section className="relative flex-1 flex flex-col justify-center p-8 md:p-16 lg:p-24 overflow-hidden">
+        {/* Background Glows */}
+        <div className="absolute top-0 left-0 w-full h-full bg-violet-600/5 blur-[120px] -z-10 rounded-full scale-150" />
+        
+        <div className="relative z-10 max-w-xl">
+          <Link to="/" className="inline-flex items-center gap-2 mb-12 transition-opacity hover:opacity-80">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-600 text-white shadow-lg shadow-violet-500/20">
+              <Zap size={22} fill="currentColor" />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-white">Shortify</span>
+          </Link>
+
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-medium mb-6">
+            <Sparkles size={14} />
+            <span>Shortify Cloud</span>
+          </div>
+
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
+            Welcome back to your <br />
+            <span className="gradient-text">link hub</span>
           </h1>
-          <p>
+          
+          <p className="text-lg text-slate-400 mb-12">
             Sign in to create polished short links, monitor traction, and keep your campaigns moving.
           </p>
-          <div className="auth-copy__stats">
-            <div className="auth-copy__stat">
-              <strong>4x faster</strong>
-              <span>Launch links in seconds</span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="flex items-start gap-4">
+              <div className="h-10 w-10 shrink-0 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-violet-400">
+                <Zap size={20} />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold">4x faster</h3>
+                <p className="text-sm text-slate-500">Launch links in seconds</p>
+              </div>
             </div>
-            <div className="auth-copy__stat">
-              <strong>Live signal</strong>
-              <span>Watch clicks roll in</span>
-            </div>
-            <div className="auth-copy__stat">
-              <strong>Secure by design</strong>
-              <span>Protected accounts and recovery</span>
+            <div className="flex items-start gap-4">
+              <div className="h-10 w-10 shrink-0 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-blue-400">
+                <BarChart3 size={20} />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold">Live signal</h3>
+                <p className="text-sm text-slate-500">Watch clicks roll in</p>
+              </div>
             </div>
           </div>
         </div>
-        <LoginForm />
-        <p className="auth-switch">
-          Don't have an account? <Link to="/register">Create one</Link>
-        </p>
       </section>
-      <section className="auth-showcase" aria-label="Why teams use Shortify">
-        <div className="auth-showcase__card">
-          <span>⚡</span>
-          <h3>Launch faster</h3>
-          <p>Turn long campaigns into polished links in seconds.</p>
-        </div>
-        <div className="auth-showcase__card">
-          <span>📈</span>
-          <h3>Track momentum</h3>
-          <p>See click trends and know what is resonating.</p>
-        </div>
-        <div className="auth-showcase__card">
-          <span>🔐</span>
-          <h3>Stay secure</h3>
-          <p>Email verification and password recovery keep your workspace protected.</p>
+
+      {/* Right Side: Login Form */}
+      <section className="flex-1 flex items-center justify-center p-8 bg-white/[0.02] border-l border-white/5">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center md:text-left">
+            <h2 className="text-2xl font-bold">Sign in</h2>
+            <p className="text-slate-500 mt-2">Enter your credentials to access your dashboard</p>
+          </div>
+          
+          <div className="glass-card p-8 shadow-2xl shadow-violet-500/5">
+            <LoginForm />
+          </div>
+
+          <p className="text-center text-sm text-slate-500">
+            Don't have an account?{" "}
+            <Link to="/register" className="text-violet-400 font-semibold hover:text-violet-300 transition-colors">
+              Create one
+            </Link>
+          </p>
         </div>
       </section>
     </main>
