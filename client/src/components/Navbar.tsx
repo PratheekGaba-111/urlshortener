@@ -36,7 +36,7 @@ const Navbar = () => {
     >
       <nav 
         className={cn(
-          "mx-auto max-w-7xl flex h-16 items-center justify-between px-6 rounded-2xl border transition-all duration-300",
+          "mx-auto max-w-5xl flex h-16 items-center justify-between px-6 rounded-2xl border transition-all duration-300",
           scrolled 
             ? "bg-[#0a0a0c]/80 backdrop-blur-xl border-white/10 shadow-2xl shadow-black/50" 
             : "bg-transparent border-transparent"
@@ -53,7 +53,7 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Links */}
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-6 md:flex">
           <div className="flex items-center gap-1 bg-white/5 rounded-full p-1 border border-white/5">
             <Link
               to="/home"
@@ -63,12 +63,6 @@ const Navbar = () => {
               )}
             >
               Dashboard
-            </Link>
-            <Link
-              to="/analytics"
-              className="px-4 py-1.5 text-sm font-medium text-slate-400 hover:text-white rounded-full transition-all"
-            >
-              Analytics
             </Link>
           </div>
           
@@ -118,34 +112,28 @@ const Navbar = () => {
       </nav>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute top-24 left-4 right-4 bg-[#0a0a0c]/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:hidden shadow-2xl"
-          >
-            <div className="flex flex-col gap-4">
-              <Link to="/home" className="text-lg font-medium text-white p-2" onClick={() => setMenuOpen(false)}>Dashboard</Link>
-              <Link to="/analytics" className="text-lg font-medium text-slate-400 p-2" onClick={() => setMenuOpen(false)}>Analytics</Link>
-              <div className="h-px bg-white/5 my-2" />
-              {authenticated ? (
-                <button onClick={handleLogout} className="flex items-center gap-2 text-lg font-medium text-red-400 p-2">
-                  <LogOut size={20} /> Logout
-                </button>
-              ) : (
-                <>
-                  <Link to="/login" className="text-lg font-medium text-white p-2" onClick={() => setMenuOpen(false)}>Login</Link>
-                  <Link to="/register" className="flex items-center justify-center gap-2 rounded-2xl bg-violet-600 py-4 text-lg font-bold text-white" onClick={() => setMenuOpen(false)}>
-                    Start Free <ChevronRight size={20} />
-                  </Link>
-                </>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <motion.div
+        initial={false}
+        animate={menuOpen ? { opacity: 1, y: 0, pointerEvents: "auto" } : { opacity: 0, y: -20, pointerEvents: "none" }}
+        className="absolute top-24 left-4 right-4 bg-[#0a0a0c]/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:hidden shadow-2xl"
+      >
+        <div className="flex flex-col gap-4">
+          <Link to="/home" className="text-lg font-medium text-white p-2" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+          <div className="h-px bg-white/5 my-2" />
+          {authenticated ? (
+            <button onClick={handleLogout} className="flex items-center gap-2 text-lg font-medium text-red-400 p-2">
+              <LogOut size={20} /> Logout
+            </button>
+          ) : (
+            <>
+              <Link to="/login" className="text-lg font-medium text-white p-2" onClick={() => setMenuOpen(false)}>Login</Link>
+              <Link to="/register" className="flex items-center justify-center gap-2 rounded-2xl bg-violet-600 py-4 text-lg font-bold text-white" onClick={() => setMenuOpen(false)}>
+                Start Free <ChevronRight size={20} />
+              </Link>
+            </>
+          )}
+        </div>
+      </motion.div>
     </header>
   );
 };

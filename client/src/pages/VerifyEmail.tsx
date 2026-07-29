@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { verifyEmail } from "../services/auth.service";
-import { Loader2, CheckCircle2, XCircle, Zap, Sparkles } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Zap, ChevronLeft } from "lucide-react";
+import { motion } from "framer-motion";
 
 const VerifyEmail = () => {
   const { token } = useParams();
@@ -38,72 +39,70 @@ const VerifyEmail = () => {
   }, [token]);
 
   return (
-    <main className="min-h-screen bg-[#0a0a0c] flex flex-col md:flex-row overflow-hidden">
-      {/* Left Side: Branding & Info */}
-      <section className="relative flex-1 flex flex-col justify-center p-8 md:p-16 lg:p-24 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-violet-600/5 blur-[120px] -z-10 rounded-full scale-150" />
-        
-        <div className="relative z-10 max-w-xl">
-          <Link to="/" className="inline-flex items-center gap-2 mb-12 transition-opacity hover:opacity-80">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-600 text-white shadow-lg shadow-violet-500/20">
+    <motion.main 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen bg-[#0a0a0c] flex items-center justify-center p-6 overflow-hidden relative"
+    >
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-[600px] bg-violet-600/5 blur-[120px] -z-10 rounded-full" />
+      
+      <div className="w-full max-w-md relative z-10 text-center">
+        <div className="mb-10">
+          <Link to="/" className="inline-flex items-center gap-2 mb-8 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-500/20 group-hover:rotate-12 transition-transform">
               <Zap size={22} fill="currentColor" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-white">Shortify</span>
+            <span className="text-2xl font-bold tracking-tight text-white">Shortify</span>
           </Link>
-
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-medium mb-6">
-            <Sparkles size={14} />
-            <span>Account Verification</span>
-          </div>
-
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
-            Confirming your <br />
-            <span className="gradient-text">identity</span>
-          </h1>
-          
-          <p className="text-lg text-slate-400 mb-12">
-            We're securing your workspace to ensure only you can manage your links.
-          </p>
+          <h1 className="text-3xl font-bold text-white mb-2">Account Verification</h1>
         </div>
-      </section>
-
-      {/* Right Side: Verification Status */}
-      <section className="flex-1 flex items-center justify-center p-8 bg-white/[0.02] border-l border-white/5">
-        <div className="w-full max-w-md space-y-8 text-center">
-          <div className="glass-card p-12 shadow-2xl shadow-violet-500/5">
-            {loading ? (
-              <div className="space-y-6">
-                <div className="flex justify-center">
-                  <Loader2 size={48} className="animate-spin text-violet-500" />
-                </div>
-                <h2 className="text-2xl font-bold">Verifying...</h2>
-                <p className="text-slate-500">Please wait while we verify your account.</p>
+        
+        <div className="glass-card p-12 shadow-2xl shadow-black/50 border-white/10">
+          {loading ? (
+            <div className="space-y-6 py-4">
+              <div className="flex justify-center">
+                <Loader2 size={48} className="animate-spin text-violet-500/50" />
               </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="flex justify-center">
-                  {success ? (
-                    <CheckCircle2 size={64} className="text-emerald-500" />
-                  ) : (
-                    <XCircle size={64} className="text-red-500" />
-                  )}
-                </div>
-                <h2 className="text-2xl font-bold">
-                  {success ? "Verified Successfully!" : "Verification Failed"}
+              <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Securing your identity...</p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              <div className="flex justify-center">
+                {success ? (
+                  <div className="h-20 w-20 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                    <CheckCircle2 size={40} />
+                  </div>
+                ) : (
+                  <div className="h-20 w-20 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
+                    <XCircle size={40} />
+                  </div>
+                )}
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold mb-2">
+                  {success ? "Verified" : "Failed"}
                 </h2>
-                <p className="text-slate-500">{message}</p>
-                <button 
-                  onClick={() => navigate("/login")}
-                  className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-violet-500/20 active:scale-[0.98]"
-                >
-                  Go to Login
-                </button>
+                <p className="text-slate-500 text-sm">{message}</p>
               </div>
-            )}
-          </div>
+              <button 
+                onClick={() => navigate("/login")}
+                className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-bold py-4 rounded-2xl transition-all hover:shadow-lg hover:shadow-violet-500/20 active:scale-[0.98]"
+              >
+                Continue to Login
+              </button>
+            </div>
+          )}
         </div>
-      </section>
-    </main>
+
+        <div className="flex flex-col items-center gap-6 mt-8">
+          <Link to="/" className="inline-flex items-center gap-2 text-[10px] font-bold text-slate-600 hover:text-slate-400 transition-colors uppercase tracking-widest">
+            <ChevronLeft size={14} />
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    </motion.main>
   );
 };
 

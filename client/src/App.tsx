@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -7,10 +7,14 @@ import PublicOnlyRoute from "./routes/PublicOnlyRoute";
 import VerifyEmail from "./pages/VerifyEmail";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AuthRedirect from "./routes/AuthRedirect";
-function App(){
-  return(
-    <BrowserRouter>
-      <Routes>
+import { AnimatePresence } from "framer-motion";
+
+function AnimatedRoutes() {
+  const location = useLocation();
+  
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
         <Route element={<ProtectedRoute />}>
           <Route path="/home" element={<Home />} />
         </Route>
@@ -23,6 +27,14 @@ function App(){
         </Route>
         <Route path="*" element={<AuthRedirect />} />
       </Routes>
+    </AnimatePresence>
+  );
+}
+
+function App(){
+  return(
+    <BrowserRouter>
+      <AnimatedRoutes />
     </BrowserRouter>
   )
 }
