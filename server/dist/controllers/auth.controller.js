@@ -3,12 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.validatePasswordReset = exports.requestPasswordReset = exports.verifyEmail = exports.login = exports.register = void 0;
+exports.resetPassword = exports.validatePasswordReset = exports.requestPasswordReset = exports.verifyEmail = exports.resendVerificationEmail = exports.login = exports.register = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const generateToken_1 = require("../utils/generateToken");
 const crypto_1 = __importDefault(require("crypto"));
 const email_service_1 = require("../services/email.service");
 const passwordReset_1 = require("../utils/passwordReset");
+const VERIFICATION_TOKEN_TTL_MS = 60 * 60 * 1000;
 const isValidEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
@@ -17,6 +18,21 @@ const toPublicUser = (user) => ({
     name: user.name,
     email: user.email
 });
+const createVerificationToken = () => crypto_1.default.randomBytes(32).toString("hex");
+const hasActiveVerificationToken = (user) => {
+    return Boolean(user.verificationToken &&
+        user.verificationTokenExpires &&
+        user.verificationTokenExpires.getTime() > Date.now());
+};
+const issueVerificationToken = async (user) => {
+    if (hasActiveVerificationToken(user)) {
+        return user.verificationToken;
+    }
+    user.verificationToken = createVerificationToken();
+    user.verificationTokenExpires = new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS);
+    await user.save();
+    return user.verificationToken;
+};
 const register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -45,17 +61,20 @@ const register = async (req, res) => {
             });
             return;
         }
-        const verificationToken = crypto_1.default.randomBytes(32).toString("hex");
-        const verificationTokenExpires = new Date(Date.now() + 60 * 60 * 1000);
         const user = await User_1.default.create({
             name,
             email,
             password,
-            verified: false,
-            verificationToken,
-            verificationTokenExpires
+            verified: false
         });
-        await (0, email_service_1.sendVerificationEmail)(user.email, verificationToken);
+        try {
+            const verificationToken = await issueVerificationToken(user);
+            await (0, email_service_1.sendVerificationEmail)(user.email, verificationToken);
+        }
+        catch (emailError) {
+            await User_1.default.deleteOne({ _id: user._id });
+            throw emailError;
+        }
         res.status(201).json({
             success: true,
             message: "Registration successful. Please check your email."
@@ -91,27 +110,30 @@ const login = async (req, res) => {
             });
             return;
         }
-        if (!withEmail.verified) {
-            res.status(403).json({
-                message: "Please verify your email first."
-            });
-            return;
-        }
         const compared = await withEmail.comparePassword(password);
-        if (compared) {
-            const token = (0, generateToken_1.generateToken)(withEmail._id.toString());
-            res.status(200).json({
-                message: "Login Successful!",
-                token,
-                user: toPublicUser(withEmail)
-            });
-        }
-        else {
+        if (!compared) {
             res.status(401).json({
                 message: "Invalid credentials"
             });
             return;
         }
+        if (!withEmail.verified) {
+            res.status(403).json({
+                success: false,
+                code: "EMAIL_NOT_VERIFIED",
+                message: "Please verify your email before signing in.",
+                email: withEmail.email,
+                canResendVerification: true
+            });
+            return;
+        }
+        const token = (0, generateToken_1.generateToken)(withEmail._id.toString());
+        res.status(200).json({
+            success: true,
+            message: "Login Successful!",
+            token,
+            user: toPublicUser(withEmail)
+        });
     }
     catch (error) {
         console.log(error);
@@ -121,6 +143,47 @@ const login = async (req, res) => {
     }
 };
 exports.login = login;
+const resendVerificationEmail = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email?.trim() || !isValidEmail(email)) {
+            res.status(400).json({
+                success: false,
+                message: "A valid email is required"
+            });
+            return;
+        }
+        const user = await User_1.default.findOne({ email });
+        if (!user) {
+            res.status(200).json({
+                success: true,
+                message: "If an unverified account exists, a new verification email has been sent."
+            });
+            return;
+        }
+        if (user.verified) {
+            res.status(200).json({
+                success: true,
+                message: "Your account is already verified. You can sign in now."
+            });
+            return;
+        }
+        const verificationToken = await issueVerificationToken(user);
+        await (0, email_service_1.sendVerificationEmail)(user.email, verificationToken);
+        res.status(200).json({
+            success: true,
+            message: "A new verification email has been sent."
+        });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+exports.resendVerificationEmail = resendVerificationEmail;
 const verifyEmail = async (req, res) => {
     const { token } = req.params;
     const user = await User_1.default.findOne({ verificationToken: token, verificationTokenExpires: { $gt: new Date() } });

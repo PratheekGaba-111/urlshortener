@@ -3,6 +3,7 @@ import {
     register,
     login,
     verifyEmail,
+    resendVerificationEmail,
     requestPasswordReset,
     validatePasswordReset,
     resetPassword
@@ -11,6 +12,7 @@ const router = Router();
 
 router.post("/register", register);
 router.get("/verify/:token", verifyEmail);
+router.post("/resend-verification", resendVerificationEmail);
 router.post("/login", login);
 router.post("/forgot-password", requestPasswordReset);
 router.get("/reset-password/:token", validatePasswordReset);

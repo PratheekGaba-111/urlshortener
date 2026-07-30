@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, XCircle, Info } from "lucide-react";
 import { useEffect } from "react";
+import { useTheme } from "../hooks/useTheme";
 
 export type ToastType = "success" | "error" | "info";
 
@@ -12,6 +13,8 @@ interface ToastProps {
 }
 
 export const Toast = ({ message, type = "success", isVisible, onClose }: ToastProps) => {
+  const { theme } = useTheme();
+
   useEffect(() => {
     if (isVisible) {
       const timer = setTimeout(onClose, 3000);
@@ -26,9 +29,9 @@ export const Toast = ({ message, type = "success", isVisible, onClose }: ToastPr
   };
 
   const colors = {
-    success: "border-emerald-500/20 bg-emerald-500/5",
-    error: "border-red-500/20 bg-red-500/5",
-    info: "border-blue-500/20 bg-blue-500/5",
+    success: theme === "dark" ? "border-emerald-500/20 bg-emerald-500/5" : "border-emerald-200 bg-emerald-50",
+    error: theme === "dark" ? "border-red-500/20 bg-red-500/5" : "border-red-200 bg-red-50",
+    info: theme === "dark" ? "border-blue-500/20 bg-blue-500/5" : "border-blue-200 bg-blue-50",
   };
 
   return (
@@ -38,10 +41,12 @@ export const Toast = ({ message, type = "success", isVisible, onClose }: ToastPr
           initial={{ opacity: 0, y: 50, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-          className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-5 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl ${colors[type]}`}
+          className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-5 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl ${
+            colors[type]
+          }`}
         >
           {icons[type]}
-          <span className="text-sm font-bold text-white whitespace-nowrap">{message}</span>
+          <span className={`text-sm font-bold whitespace-nowrap ${theme === "dark" ? "text-white" : "text-slate-900"}`}>{message}</span>
         </motion.div>
       )}
     </AnimatePresence>

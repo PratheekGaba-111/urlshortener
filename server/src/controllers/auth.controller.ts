@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
-import User from "../models/User";
+import User, { type IUser } from "../models/User";
 import { generateToken } from "../utils/generateToken";
 import crypto from "crypto";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../services/email.service";
 import { createPasswordResetToken, isPasswordResetTokenExpired } from "../utils/passwordReset";
+
+const VERIFICATION_TOKEN_TTL_MS = 60 * 60 * 1000;
+
 const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
@@ -12,6 +15,28 @@ const toPublicUser = (user: { _id: unknown; name: string; email: string }) => ({
     name : user.name,
     email : user.email
 });
+
+const createVerificationToken = () => crypto.randomBytes(32).toString("hex");
+
+const hasActiveVerificationToken = (user: IUser) => {
+    return Boolean(
+        user.verificationToken &&
+        user.verificationTokenExpires &&
+        user.verificationTokenExpires.getTime() > Date.now()
+    );
+};
+
+const issueVerificationToken = async (user: IUser) => {
+    if (hasActiveVerificationToken(user)) {
+        return user.verificationToken as string;
+    }
+
+    user.verificationToken = createVerificationToken();
+    user.verificationTokenExpires = new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS);
+    await user.save();
+
+    return user.verificationToken;
+};
 
 export const register = async(
     req : Request, 
@@ -48,22 +73,20 @@ export const register = async(
             });
             return;
         } 
-        const verificationToken = crypto.randomBytes(32).toString("hex");
-        const verificationTokenExpires = new Date(
-            Date.now() + 60 * 60 * 1000
-        );
         const user = await User.create({
             name,
             email,
             password,
-            verified : false,    
-            verificationToken,
-            verificationTokenExpires
-        });        
-        await sendVerificationEmail(
-            user.email,
-            verificationToken
-        );
+            verified : false
+        });
+
+        try {
+            const verificationToken = await issueVerificationToken(user);
+            await sendVerificationEmail(user.email, verificationToken);
+        } catch (emailError) {
+            await User.deleteOne({ _id: user._id });
+            throw emailError;
+        }
         
         res.status(201).json({
             success: true,
@@ -104,28 +127,33 @@ export const login = async(
             });
             return;
         }
-        if (!withEmail.verified) {
-            res.status(403).json({
-                message: "Please verify your email first."
-            });
-            return;
-        }
+
         const compared = await withEmail.comparePassword(password);
-        if(compared){
-            const token = generateToken(withEmail._id.toString());
-            res.status(200).json({
-                message : "Login Successful!",
-                token,
-                user : toPublicUser(withEmail)
-            })
-        }
-        else{
+        if(!compared){
             res.status(401).json({
                 message : "Invalid credentials"
             });
             return;
         }
 
+        if (!withEmail.verified) {
+            res.status(403).json({
+                success: false,
+                code: "EMAIL_NOT_VERIFIED",
+                message: "Please verify your email before signing in.",
+                email: withEmail.email,
+                canResendVerification: true
+            });
+            return;
+        }
+
+        const token = generateToken(withEmail._id.toString());
+        res.status(200).json({
+            success: true,
+            message : "Login Successful!",
+            token,
+            user : toPublicUser(withEmail)
+        })
     }catch(error){
         console.log(error);
         res.status(500).json({
@@ -133,6 +161,54 @@ export const login = async(
         })
     }
 }
+
+export const resendVerificationEmail = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { email } = req.body;
+
+        if (!email?.trim() || !isValidEmail(email)) {
+            res.status(400).json({
+                success: false,
+                message: "A valid email is required"
+            });
+            return;
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            res.status(200).json({
+                success: true,
+                message: "If an unverified account exists, a new verification email has been sent."
+            });
+            return;
+        }
+
+        if (user.verified) {
+            res.status(200).json({
+                success: true,
+                message: "Your account is already verified. You can sign in now."
+            });
+            return;
+        }
+
+        const verificationToken = await issueVerificationToken(user);
+        await sendVerificationEmail(user.email, verificationToken);
+
+        res.status(200).json({
+            success: true,
+            message: "A new verification email has been sent."
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
 
 export const verifyEmail = async(
     req : Request,

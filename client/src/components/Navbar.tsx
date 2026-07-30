@@ -62,7 +62,7 @@ const Navbar = () => {
         </Link>
         {/* Desktop Links */}
         <div className="hidden items-center gap-6 md:flex">
-          <div className="flex items-center gap-1 bg-white/5 rounded-full p-1 border border-white/5">
+          <div className={cn("flex items-center gap-1 rounded-full p-1 border", theme === "dark" ? "bg-white/5 border-white/5" : "bg-slate-100 border-slate-200")}>
             <Link
               to="/home"
               className={cn(
@@ -112,7 +112,11 @@ const Navbar = () => {
         {/* Mobile Toggle */}
         <button
           type="button"
-          className="md:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-slate-400"
+          className={`md:hidden flex h-10 w-10 items-center justify-center rounded-xl border transition-colors ${
+            theme === "dark"
+              ? "border-white/10 text-slate-400 hover:bg-white/5"
+              : "border-slate-200 text-slate-600 hover:bg-slate-100"
+          }`}
           onClick={() => setMenuOpen(!menuOpen)}
         >
           {menuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -123,11 +127,15 @@ const Navbar = () => {
       <motion.div
         initial={false}
         animate={menuOpen ? { opacity: 1, y: 0, pointerEvents: "auto" } : { opacity: 0, y: -20, pointerEvents: "none" }}
-        className="absolute top-24 left-4 right-4 bg-[#0a0a0c]/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:hidden shadow-2xl"
+        className={`absolute top-24 left-4 right-4 backdrop-blur-2xl rounded-3xl p-6 md:hidden shadow-2xl border ${
+          theme === "dark"
+            ? "bg-[#0a0a0c]/95 border-white/10"
+            : "bg-white/95 border-slate-200 shadow-slate-200/70"
+        }`}
       >
         <div className="flex flex-col gap-4">
           <Link to="/home" className={`p-2 text-lg font-medium ${theme === "dark" ? "text-white" : "text-slate-900"}`} onClick={() => setMenuOpen(false)}>Home</Link>
-          <div className="h-px bg-white/5 my-2" />
+          <div className={`h-px my-2 ${theme === "dark" ? "bg-white/5" : "bg-slate-200"}`} />
           {authenticated ? (
             <button onClick={handleLogout} className="flex items-center gap-2 text-lg font-medium text-red-400 p-2">
               <LogOut size={20} /> Logout

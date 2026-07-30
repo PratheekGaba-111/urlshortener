@@ -1,42 +1,42 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { motion } from "framer-motion";
+
+import { cn } from "@/lib/utils";
 
 interface ShineBorderProps {
   children?: React.ReactNode;
   className?: string;
-  color?: string;
 }
 
 export const ShineBorder: React.FC<ShineBorderProps> = ({
   children,
-  className = '',
+  className = "",
 }) => {
   return (
     <motion.div
-      className={`relative overflow-hidden rounded-lg border border-white/20 ${className}`}
-      whileHover={{ borderColor: 'rgba(255, 255, 255, 0.5)' }}
+      className={cn(
+        "relative overflow-hidden rounded-[1.75rem] border border-white/15",
+        className
+      )}
+      whileHover={{ borderColor: "rgba(255, 255, 255, 0.35)" }}
     >
-      {/* Shine effect */}
       <motion.div
         className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0"
         animate={{
-          opacity: [0, 0.5, 0],
-          x: ['-100%', '100%'],
+          opacity: [0, 0.45, 0],
+          x: ["-100%", "100%"],
         }}
         transition={{
-          duration: 3,
+          duration: 3.2,
           repeat: Infinity,
-          ease: 'easeInOut',
+          ease: "easeInOut",
         }}
         style={{
-          pointerEvents: 'none',
+          pointerEvents: "none",
         }}
       />
-      
-      {/* Content */}
-      <div className="relative z-10">
-        {children}
-      </div>
+
+      <div className="relative z-10">{children}</div>
     </motion.div>
   );
 };

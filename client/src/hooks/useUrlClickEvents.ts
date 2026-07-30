@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import type { UrlClickUpdate } from "../types/url";
 import { clearAuthToken, TOKEN_KEY } from "../utils/auth";
-
-const API_BASE_URL = "http://localhost:3333/api";
+import { apiBaseUrl } from "../services/api";
 
 export const useUrlClickEvents = (
   onUrlClick: (update: UrlClickUpdate) => void,
@@ -13,7 +12,7 @@ export const useUrlClickEvents = (
     if (!token) return;
 
     const events = new EventSource(
-      `${API_BASE_URL}/url/events?token=${encodeURIComponent(token)}`,
+      `${apiBaseUrl}/url/events?token=${encodeURIComponent(token)}`,
     );
 
     events.addEventListener("url-click", (event) => {

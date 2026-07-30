@@ -12,15 +12,26 @@ export interface User{
     name : string, 
     email : string
 }
-export interface LoginResponse{
+export interface LoginSuccessResponse{
+    success: true;
     message : string,
     token : string, 
     user : User
 }
+
+export interface LoginErrorResponse {
+    success: false;
+    message: string;
+    code?: "EMAIL_NOT_VERIFIED" | string;
+    email?: string;
+    canResendVerification?: boolean;
+}
+
+export type LoginResponse = LoginSuccessResponse | LoginErrorResponse;
+
 export interface RegisterResponse{
-    message : string,
-    token : string, 
-    user : User
+    success: true;
+    message : string
 }
 
 export interface ForgotPasswordResponse {
@@ -29,6 +40,11 @@ export interface ForgotPasswordResponse {
 }
 
 export interface ResetPasswordResponse {
+    success: boolean;
+    message: string;
+}
+
+export interface VerificationResponse {
     success: boolean;
     message: string;
 }

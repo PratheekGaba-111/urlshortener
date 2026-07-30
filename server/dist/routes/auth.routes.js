@@ -8,6 +8,7 @@ const auth_controller_1 = require("../controllers/auth.controller");
 const router = (0, express_1.default)();
 router.post("/register", auth_controller_1.register);
 router.get("/verify/:token", auth_controller_1.verifyEmail);
+router.post("/resend-verification", auth_controller_1.resendVerificationEmail);
 router.post("/login", auth_controller_1.login);
 router.post("/forgot-password", auth_controller_1.requestPasswordReset);
 router.get("/reset-password/:token", auth_controller_1.validatePasswordReset);

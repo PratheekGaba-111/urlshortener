@@ -1,158 +1,185 @@
 import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config();
-console.log("EMAIL_USER:", process.env.EMAIL_USER);
-console.log("EMAIL_PASS:", process.env.EMAIL_PASS);
-const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-        rejectUnauthorized: false
+import "../config/env";
+
+const APP_NAME = "Shortify";
+
+const getRequiredEnv = (name: string) => {
+    const value = process.env[name]?.trim();
+    if (!value) {
+        throw new Error(`Missing required environment variable: ${name}`);
     }
+    return value;
+};
+
+const getClientUrl = () => getRequiredEnv("CLIENT_URL").replace(/\/$/, "");
+
+const emailUser = getRequiredEnv("EMAIL_USER");
+const emailPass = getRequiredEnv("EMAIL_PASS");
+
+const smtpHost = process.env.SMTP_HOST?.trim() || "smtp.gmail.com";
+const smtpPort = Number(process.env.SMTP_PORT?.trim() || "465");
+const smtpSecure =
+    process.env.SMTP_SECURE?.trim() !== undefined
+        ? process.env.SMTP_SECURE.trim() === "true"
+        : smtpPort === 465;
+
+const transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpSecure,
+    auth: {
+        user: emailUser,
+        pass: emailPass,
+    },
 });
-// Check SMTP connection when server starts
-transporter.verify()
-    .then(() => {
-        console.log("SMTP READY");
-    })
-    .catch((error) => {
-        console.error("SMTP ERROR:", error.message);
-    });
 
+type EmailTemplate = {
+    subject: string;
+    headline: string;
+    intro: string;
+    ctaLabel: string;
+    ctaUrl: string;
+    ctaColor: string;
+    closing: string;
+    supportNote: string;
+};
 
-export const sendVerificationEmail = async (
-    email: string,
-    token: string
-) => {
-    try {
-        const verificationLink =
-            `${process.env.CLIENT_URL}/verify/${token}`;
-
-        const mailOptions = {
-            from: `"Shortify" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: "Verify your Shortify Account",
-            html: `
-                <h2>Welcome to Shortify 👋</h2>
-
-                <p>Thanks for registering!</p>
-
-                <p>Please verify your email by clicking below:</p>
-
-                <a href="${verificationLink}"
+const buildHtml = ({
+    headline,
+    intro,
+    ctaLabel,
+    ctaUrl,
+    ctaColor,
+    closing,
+    supportNote,
+}: EmailTemplate) => `
+    <div style="background:#0f172a;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;color:#e2e8f0;">
+        <div style="max-width:560px;margin:0 auto;background:#111827;border:1px solid rgba(148,163,184,0.18);border-radius:20px;overflow:hidden;">
+            <div style="padding:32px;">
+                <div style="font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:#8b5cf6;font-weight:700;margin-bottom:18px;">
+                    ${APP_NAME}
+                </div>
+                <h1 style="margin:0 0 16px;font-size:28px;line-height:1.2;color:#ffffff;">
+                    ${headline}
+                </h1>
+                <p style="margin:0 0 24px;font-size:15px;line-height:1.8;color:#cbd5e1;">
+                    ${intro}
+                </p>
+                <a href="${ctaUrl}"
                    style="
                     display:inline-block;
-                    padding:12px 24px;
-                    background:#2563eb;
+                    padding:14px 24px;
+                    background:${ctaColor};
                     color:white;
                     text-decoration:none;
-                    border-radius:8px;
+                    border-radius:12px;
+                    font-weight:700;
                    ">
-                    Verify Account
+                    ${ctaLabel}
                 </a>
+                <p style="margin:24px 0 0;font-size:13px;line-height:1.7;color:#94a3b8;">
+                    ${closing}
+                </p>
+                <p style="margin:14px 0 0;font-size:12px;line-height:1.7;color:#64748b;">
+                    ${supportNote}
+                </p>
+            </div>
+        </div>
+    </div>
+`;
 
-                <p>This link expires in 1 hour.</p>
-            `,
-        };
+const buildText = ({
+    headline,
+    intro,
+    ctaLabel,
+    ctaUrl,
+    closing,
+    supportNote,
+}: EmailTemplate) =>
+    [
+        APP_NAME,
+        "",
+        headline,
+        intro,
+        "",
+        `${ctaLabel}: ${ctaUrl}`,
+        "",
+        closing,
+        supportNote,
+    ].join("\n");
 
-        console.log("Sending verification email to:", email);
+const sendTemplateEmail = async (to: string, template: EmailTemplate) => {
+    const info = await transporter.sendMail({
+        from: `"${APP_NAME}" <${emailUser}>`,
+        to,
+        subject: template.subject,
+        html: buildHtml(template),
+        text: buildText(template),
+    });
 
-        const info = await transporter.sendMail(mailOptions);
+    return info.messageId;
+};
 
-        console.log(
-            "VERIFICATION MAIL SENT:",
-            info.messageId
+const buildVerificationTemplate = (token: string): EmailTemplate => {
+    const clientUrl = getClientUrl();
+    const verificationLink = `${clientUrl}/verify/${token}`;
+
+    return {
+        subject: "Verify your Shortify account",
+        headline: "Verify your email address",
+        intro:
+            "Thanks for joining Shortify. Verify your account to activate login and start using your dashboard.",
+        ctaLabel: "Verify account",
+        ctaUrl: verificationLink,
+        ctaColor: "#2563eb",
+        closing: "This verification link expires in 1 hour.",
+        supportNote:
+            "If you did not create this account, you can safely ignore this email.",
+    };
+};
+
+const buildPasswordResetTemplate = (token: string): EmailTemplate => {
+    const clientUrl = getClientUrl();
+    const resetLink = `${clientUrl}/reset-password/${token}`;
+
+    return {
+        subject: "Reset your Shortify password",
+        headline: "Reset your password",
+        intro:
+            "We received a request to reset your Shortify password. Use the button below to choose a new one.",
+        ctaLabel: "Reset password",
+        ctaUrl: resetLink,
+        ctaColor: "#7c3aed",
+        closing: "This password reset link expires in 30 minutes.",
+        supportNote:
+            "If you did not request a password reset, you can ignore this email.",
+    };
+};
+
+export const sendVerificationEmail = async (email: string, token: string) => {
+    try {
+        const messageId = await sendTemplateEmail(
+            email,
+            buildVerificationTemplate(token)
         );
 
+        console.log("Verification email sent:", messageId);
     } catch (error: any) {
-        console.error(
-            "VERIFICATION EMAIL ERROR:",
-            error.message
-        );
+        console.error("Verification email error:", error.message);
         throw error;
     }
 };
 
-
-export const sendPasswordResetEmail = async (
-    email: string,
-    token: string
-) => {
+export const sendPasswordResetEmail = async (email: string, token: string) => {
     try {
-        console.log("RESET EMAIL:", email);
-        console.log(
-            "EMAIL_USER:",
-            process.env.EMAIL_USER
-        );
-        console.log(
-            "EMAIL_PASS exists:",
-            !!process.env.EMAIL_PASS
-        );
-        console.log(
-            "CLIENT_URL:",
-            process.env.CLIENT_URL
+        const messageId = await sendTemplateEmail(
+            email,
+            buildPasswordResetTemplate(token)
         );
 
-
-        const resetLink =
-            `${process.env.CLIENT_URL}/reset-password/${token}`;
-
-
-        const mailOptions = {
-            from: `"Shortify" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: "Reset your Shortify password",
-            html: `
-                <h2>Reset your password 🔐</h2>
-
-                <p>
-                    We received a request to reset your password.
-                </p>
-
-                <a href="${resetLink}"
-                   style="
-                    display:inline-block;
-                    padding:12px 24px;
-                    background:#7c3aed;
-                    color:white;
-                    text-decoration:none;
-                    border-radius:8px;
-                   ">
-                    Reset Password
-                </a>
-
-                <p>
-                    This link expires in 30 minutes.
-                </p>
-            `,
-        };
-
-
-        console.log("Sending reset email...");
-
-        const info = await transporter.sendMail(mailOptions);
-
-
-        console.log(
-            "RESET MAIL SENT:",
-            info.messageId
-        );
-
-
+        console.log("Password reset email sent:", messageId);
     } catch (error: any) {
-
-        console.error(
-            "RESET MAIL ERROR:",
-            error.message
-        );
-
-        console.error(error);
-
+        console.error("Password reset email error:", error.message);
         throw error;
     }
-};  
+};

@@ -1,4 +1,4 @@
-import { type LoginResponse, type LoginDetails, type RegisterDetails, type RegisterResponse, type ForgotPasswordResponse, type ResetPasswordResponse } from "../types/auth.types";
+import { type LoginResponse, type LoginDetails, type RegisterDetails, type RegisterResponse, type ForgotPasswordResponse, type ResetPasswordResponse, type VerificationResponse } from "../types/auth.types";
 import api from "./api";
 
 
@@ -6,8 +6,8 @@ export const login = async (loginDetails : LoginDetails) : Promise<LoginResponse
     try{
         const response = await api.post<LoginResponse>("/auth/login", loginDetails);
         return response.data; 
-    }catch{
-        return null;
+    }catch(error: any){
+        return error.response?.data ?? null;
     }
 };
 export const register = async (registerDetails : RegisterDetails) : Promise<RegisterResponse | null> => {
@@ -31,6 +31,15 @@ export const requestPasswordReset = async (email: string): Promise<ForgotPasswor
         return response.data;
     } catch {
         return null;
+    }
+};
+
+export const resendVerification = async (email: string): Promise<VerificationResponse | null> => {
+    try {
+        const response = await api.post<VerificationResponse>("/auth/resend-verification", { email });
+        return response.data;
+    } catch (error: any) {
+        return error.response?.data ?? null;
     }
 };
 

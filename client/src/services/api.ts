@@ -1,8 +1,13 @@
 import axios from "axios";
 import { clearAuthToken, TOKEN_KEY } from "../utils/auth";
 
+export const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "http://localhost:3333/api").replace(
+  /\/$/,
+  ""
+);
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: apiBaseUrl,
 });
 
 api.interceptors.request.use((config) => {

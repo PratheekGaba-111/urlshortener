@@ -5,6 +5,8 @@ import type { RegisterDetails } from "../types/auth.types";
 import { register } from "../services/auth.service";
 import { ArrowRight, Lock, Mail, User, Loader2, Eye, EyeOff } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const RegisterForm = () => {
   const [registerDetails, setRegisterDetails] = useState<RegisterDetails>({
@@ -51,19 +53,23 @@ const RegisterForm = () => {
     >
       <AnimatePresence mode="wait">
         {message && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className={`rounded-2xl border p-4 text-sm font-medium ${
-              hasError 
-                ? "border-red-500/20 bg-red-500/10 text-red-400"
-                : "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-            }`}
-            role="status"
-          >
-            {message}
-          </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className={`rounded-2xl border p-4 text-sm font-medium ${
+                hasError 
+                ? theme === "dark"
+                  ? "border-red-500/20 bg-red-500/10 text-red-400"
+                  : "border-red-200 bg-red-50 text-red-700"
+                : theme === "dark"
+                  ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-700"
+              }`}
+              role="status"
+            >
+              {message}
+            </motion.div>
         )}
       </AnimatePresence>
 
@@ -74,11 +80,11 @@ const RegisterForm = () => {
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-violet-400 transition-colors">
               <User size={18} />
             </div>
-            <input
+            <Input
               id="name"
               type="text"
               placeholder="John Doe"
-              className={`w-full rounded-2xl border py-4 pl-12 pr-4 text-base transition-all focus:outline-none focus:ring-2 focus:ring-violet-500/50 ${theme === "dark" ? "border-white/10 bg-white/5 text-white placeholder:text-slate-600" : "border-slate-200 bg-white text-slate-900 shadow-sm placeholder:text-slate-400"}`}
+              className={`pl-12 pr-4 ${theme === "dark" ? "border-white/10 bg-white/5 text-white placeholder:text-slate-600" : "border-slate-200 bg-white text-slate-900 shadow-sm placeholder:text-slate-400"}`}
               required
               value={registerDetails.name}
               onChange={(e) => setRegisterDetails(prev => ({ ...prev, name: e.target.value }))}
@@ -92,11 +98,11 @@ const RegisterForm = () => {
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-violet-400 transition-colors">
               <Mail size={18} />
             </div>
-            <input
+            <Input
               id="email"
               type="email"
               placeholder="you@company.com"
-              className={`w-full rounded-2xl border py-4 pl-12 pr-4 text-base transition-all focus:outline-none focus:ring-2 focus:ring-violet-500/50 ${theme === "dark" ? "border-white/10 bg-white/5 text-white placeholder:text-slate-600" : "border-slate-200 bg-white text-slate-900 shadow-sm placeholder:text-slate-400"}`}
+              className={`pl-12 pr-4 ${theme === "dark" ? "border-white/10 bg-white/5 text-white placeholder:text-slate-600" : "border-slate-200 bg-white text-slate-900 shadow-sm placeholder:text-slate-400"}`}
               required
               value={registerDetails.email}
               onChange={(e) => setRegisterDetails(prev => ({ ...prev, email: e.target.value }))}
@@ -110,11 +116,11 @@ const RegisterForm = () => {
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-violet-400 transition-colors">
               <Lock size={18} />
             </div>
-            <input
+            <Input
               id="password"
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
-              className={`w-full rounded-2xl border py-4 pl-12 pr-12 text-base transition-all focus:outline-none focus:ring-2 focus:ring-violet-500/50 ${theme === "dark" ? "border-white/10 bg-white/5 text-white placeholder:text-slate-600" : "border-slate-200 bg-white text-slate-900 shadow-sm placeholder:text-slate-400"}`}
+              className={`pl-12 pr-12 ${theme === "dark" ? "border-white/10 bg-white/5 text-white placeholder:text-slate-600" : "border-slate-200 bg-white text-slate-900 shadow-sm placeholder:text-slate-400"}`}
               required
               value={registerDetails.password}
               onChange={(e) => setRegisterDetails(prev => ({ ...prev, password: e.target.value }))}
@@ -131,10 +137,10 @@ const RegisterForm = () => {
         </div>
       </div>
 
-      <button 
+      <Button 
         type="submit" 
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl transition-all hover:shadow-xl hover:shadow-violet-500/20 active:scale-[0.98] text-base"
+        className="w-full flex items-center justify-center gap-2 text-white font-bold"
       >
         {loading ? (
           <Loader2 size={20} className="animate-spin" />
@@ -144,7 +150,7 @@ const RegisterForm = () => {
             <ArrowRight size={18} />
           </>
         )}
-      </button>
+      </Button>
     </motion.form>
   );
 };

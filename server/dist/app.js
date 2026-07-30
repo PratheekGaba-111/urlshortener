@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
+const rateLimiter_1 = require("./middleware/rateLimiter");
 const url_routes_1 = __importDefault(require("./routes/url.routes"));
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const url_controller_1 = require("./controllers/url.controller");
@@ -12,6 +13,9 @@ const app = (0, express_1.default)();
 // middleware
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
+app.use("/api/auth", rateLimiter_1.authLimiter);
+app.use("/api/url", rateLimiter_1.urlLimiter);
+app.set("trust proxy", 1);
 // Health checkk
 app.get("/", (req, res) => {
     res.json({

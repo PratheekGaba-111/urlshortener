@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { cn } from "@/lib/utils";
 
 interface AuroraBackgroundProps {
   children?: React.ReactNode;
@@ -11,7 +12,7 @@ export const AuroraBackground: React.FC<AuroraBackgroundProps> = ({
   className = '' 
 }) => {
   return (
-    <div className={`relative w-full overflow-hidden bg-black ${className}`}>
+    <div className={cn("relative w-full overflow-hidden", className)}>
       {/* Aurora effect background */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Animated gradient orbs */}
