@@ -33,6 +33,11 @@ const issueVerificationToken = async (user) => {
     await user.save();
     return user.verificationToken;
 };
+const queueEmailSend = (label, task) => {
+    task.catch((error) => {
+        console.error(`${label} failed:`, error);
+    });
+};
 const register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -67,21 +72,8 @@ const register = async (req, res) => {
             password,
             verified: false
         });
-        try {
-            const verificationToken = await issueVerificationToken(user);
-            await (0, email_service_1.sendVerificationEmail)(user.email, verificationToken);
-        }
-        catch (emailError) {
-            console.error("Verification email could not be delivered after registration:", emailError);
-            res.status(201).json({
-                success: true,
-                message: "Account created, but the verification email could not be delivered right now. You can resend it from the login page once email service is available.",
-                verificationEmailSent: false,
-                email: user.email,
-                canResendVerification: true
-            });
-            return;
-        }
+        const verificationToken = await issueVerificationToken(user);
+        queueEmailSend("Verification email", (0, email_service_1.sendVerificationEmail)(user.email, verificationToken));
         res.status(201).json({
             success: true,
             message: "Registration successful. Please check your email."
@@ -176,7 +168,7 @@ const resendVerificationEmail = async (req, res) => {
             return;
         }
         const verificationToken = await issueVerificationToken(user);
-        await (0, email_service_1.sendVerificationEmail)(user.email, verificationToken);
+        queueEmailSend("Verification resend", (0, email_service_1.sendVerificationEmail)(user.email, verificationToken));
         res.status(200).json({
             success: true,
             message: "A new verification email has been sent."
@@ -233,17 +225,7 @@ const requestPasswordReset = async (req, res) => {
         user.resetToken = resetToken;
         user.resetTokenExpires = new Date(Date.now() + 30 * 60 * 1000);
         await user.save();
-        try {
-            await (0, email_service_1.sendPasswordResetEmail)(user.email, resetToken);
-        }
-        catch (emailError) {
-            console.error("Password reset email could not be delivered:", emailError);
-            res.status(503).json({
-                success: false,
-                message: "Password reset email could not be sent right now. Please try again later."
-            });
-            return;
-        }
+        queueEmailSend("Password reset email", (0, email_service_1.sendPasswordResetEmail)(user.email, resetToken));
         res.status(200).json({
             success: true,
             message: "If an account exists, a reset email has been sent."
