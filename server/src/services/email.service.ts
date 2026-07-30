@@ -21,7 +21,46 @@ type MailerConfig = {
     smtpSecure: boolean;
 };
 
+const SMTP_OPERATION_TIMEOUT_MS = 15000;
+const MAIL_DEBUG = process.env.MAIL_DEBUG?.trim() === "true";
 let transporterPromise: Promise<nodemailer.Transporter> | null = null;
+
+const debugEmail = (...args: unknown[]) => {
+    if (MAIL_DEBUG) {
+        console.log("[mail-debug]", ...args);
+    }
+};
+
+const maskValue = (value: string, visibleStart = 3, visibleEnd = 3) => {
+    if (value.length <= visibleStart + visibleEnd) {
+        return "***";
+    }
+
+    return `${value.slice(0, visibleStart)}***${value.slice(-visibleEnd)}`;
+};
+
+const serializeEmailError = (error: unknown) => {
+    if (!(error instanceof Error)) {
+        return { error };
+    }
+
+    const anyError = error as Error & {
+        code?: string;
+        response?: string;
+        command?: string;
+        errno?: number;
+    };
+
+    return {
+        name: anyError.name,
+        message: anyError.message,
+        code: anyError.code,
+        response: anyError.response,
+        command: anyError.command,
+        errno: anyError.errno,
+        stack: anyError.stack,
+    };
+};
 
 const loadMailerConfig = (): MailerConfig => {
     const smtpHost =
@@ -62,6 +101,15 @@ const loadMailerConfig = (): MailerConfig => {
         );
     }
 
+    debugEmail("loaded config", {
+        smtpHost,
+        smtpPort,
+        smtpSecure: smtpSecureEnv !== undefined ? smtpSecureEnv === "true" : smtpPort === 465,
+        emailUser: maskValue(emailUser),
+        emailFrom,
+        clientUrl: getRequiredEnv("CLIENT_URL").replace(/\/$/, ""),
+    });
+
     return {
         clientUrl: getRequiredEnv("CLIENT_URL").replace(/\/$/, ""),
         emailUser,
@@ -82,23 +130,42 @@ const getTransporter = async () => {
     if (!transporterPromise) {
         transporterPromise = (async () => {
             const config = loadMailerConfig();
+            debugEmail("creating transporter", {
+                host: config.smtpHost,
+                port: config.smtpPort,
+                secure: config.smtpSecure,
+            });
             const transporter = nodemailer.createTransport({
                 host: config.smtpHost,
                 port: config.smtpPort,
                 secure: config.smtpSecure,
+                connectionTimeout: SMTP_OPERATION_TIMEOUT_MS,
+                greetingTimeout: SMTP_OPERATION_TIMEOUT_MS,
+                socketTimeout: SMTP_OPERATION_TIMEOUT_MS,
                 auth: {
                     user: config.emailUser,
                     pass: config.emailPass,
                 },
             });
 
-            await transporter.verify();
+            debugEmail("verifying SMTP connection");
+            await Promise.race([
+                transporter.verify(),
+                new Promise((_, reject) =>
+                    setTimeout(
+                        () => reject(new Error("SMTP verification timed out")),
+                        SMTP_OPERATION_TIMEOUT_MS
+                    )
+                ),
+            ]);
             console.log(
                 `[email] SMTP ready for ${config.smtpHost}:${config.smtpPort}`
             );
+            debugEmail("SMTP verify succeeded");
 
             return transporter;
         })().catch((error) => {
+            debugEmail("SMTP verify failed", serializeEmailError(error));
             transporterPromise = null;
             throw error;
         });
@@ -186,15 +253,38 @@ const sendTemplateEmail = async (to: string, template: EmailTemplate) => {
     const transporter = await getTransporter();
     const { emailFrom } = loadMailerConfig();
 
-    const info = await transporter.sendMail({
-        from: `"${APP_NAME}" <${emailFrom}>`,
+    debugEmail("sending email", {
         to,
+        from: emailFrom,
         subject: template.subject,
-        html: buildHtml(template),
-        text: buildText(template),
+        ctaUrl: template.ctaUrl,
     });
 
-    return info.messageId;
+    const info = await Promise.race([
+        transporter.sendMail({
+            from: `"${APP_NAME}" <${emailFrom}>`,
+            to,
+            subject: template.subject,
+            html: buildHtml(template),
+            text: buildText(template),
+        }),
+        new Promise<never>((_, reject) =>
+            setTimeout(
+                () => reject(new Error("SMTP send timed out")),
+                SMTP_OPERATION_TIMEOUT_MS
+            )
+        ),
+    ]);
+
+    const sentInfo = info as nodemailer.SentMessageInfo;
+    debugEmail("sendMail succeeded", {
+        messageId: sentInfo.messageId,
+        accepted: sentInfo.accepted,
+        rejected: sentInfo.rejected,
+        response: sentInfo.response,
+    });
+
+    return sentInfo.messageId;
 };
 
 const getFriendlyEmailError = (error: unknown) => {
@@ -218,6 +308,10 @@ const getFriendlyEmailError = (error: unknown) => {
 
     if (code === "ECONNECTION" || code === "ETIMEDOUT" || code === "ECONNREFUSED") {
         return "SMTP connection failed. For Brevo, check SMTP_HOST=smtp-relay.brevo.com, SMTP_PORT=587, SMTP_SECURE=false, and outbound network access on Render.";
+    }
+
+    if (/timed out/i.test(combined)) {
+        return "SMTP request timed out. This usually means the host could not complete the connection or handshake in time.";
     }
 
     if (/ENOTFOUND|getaddrinfo/i.test(combined)) {
@@ -274,6 +368,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
     } catch (error: any) {
         const friendlyError = getFriendlyEmailError(error);
         console.error("Verification email error:", friendlyError);
+        debugEmail("verification email raw error", serializeEmailError(error));
         throw new Error(friendlyError);
     }
 };
@@ -289,6 +384,7 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
     } catch (error: any) {
         const friendlyError = getFriendlyEmailError(error);
         console.error("Password reset email error:", friendlyError);
+        debugEmail("password reset raw error", serializeEmailError(error));
         throw new Error(friendlyError);
     }
 };

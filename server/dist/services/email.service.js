@@ -14,7 +14,35 @@ const getRequiredEnv = (name) => {
     }
     return value;
 };
+const SMTP_OPERATION_TIMEOUT_MS = 15000;
+const MAIL_DEBUG = process.env.MAIL_DEBUG?.trim() === "true";
 let transporterPromise = null;
+const debugEmail = (...args) => {
+    if (MAIL_DEBUG) {
+        console.log("[mail-debug]", ...args);
+    }
+};
+const maskValue = (value, visibleStart = 3, visibleEnd = 3) => {
+    if (value.length <= visibleStart + visibleEnd) {
+        return "***";
+    }
+    return `${value.slice(0, visibleStart)}***${value.slice(-visibleEnd)}`;
+};
+const serializeEmailError = (error) => {
+    if (!(error instanceof Error)) {
+        return { error };
+    }
+    const anyError = error;
+    return {
+        name: anyError.name,
+        message: anyError.message,
+        code: anyError.code,
+        response: anyError.response,
+        command: anyError.command,
+        errno: anyError.errno,
+        stack: anyError.stack,
+    };
+};
 const loadMailerConfig = () => {
     const smtpHost = process.env.SMTP_HOST?.trim() || "smtp-relay.brevo.com";
     const smtpPortRaw = process.env.SMTP_PORT?.trim() || "587";
@@ -40,6 +68,14 @@ const loadMailerConfig = () => {
     if (!emailFrom) {
         throw new Error("Missing sender email. Set EMAIL_FROM to a verified sender address.");
     }
+    debugEmail("loaded config", {
+        smtpHost,
+        smtpPort,
+        smtpSecure: smtpSecureEnv !== undefined ? smtpSecureEnv === "true" : smtpPort === 465,
+        emailUser: maskValue(emailUser),
+        emailFrom,
+        clientUrl: getRequiredEnv("CLIENT_URL").replace(/\/$/, ""),
+    });
     return {
         clientUrl: getRequiredEnv("CLIENT_URL").replace(/\/$/, ""),
         emailUser,
@@ -57,19 +93,33 @@ const getTransporter = async () => {
     if (!transporterPromise) {
         transporterPromise = (async () => {
             const config = loadMailerConfig();
+            debugEmail("creating transporter", {
+                host: config.smtpHost,
+                port: config.smtpPort,
+                secure: config.smtpSecure,
+            });
             const transporter = nodemailer_1.default.createTransport({
                 host: config.smtpHost,
                 port: config.smtpPort,
                 secure: config.smtpSecure,
+                connectionTimeout: SMTP_OPERATION_TIMEOUT_MS,
+                greetingTimeout: SMTP_OPERATION_TIMEOUT_MS,
+                socketTimeout: SMTP_OPERATION_TIMEOUT_MS,
                 auth: {
                     user: config.emailUser,
                     pass: config.emailPass,
                 },
             });
-            await transporter.verify();
+            debugEmail("verifying SMTP connection");
+            await Promise.race([
+                transporter.verify(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("SMTP verification timed out")), SMTP_OPERATION_TIMEOUT_MS)),
+            ]);
             console.log(`[email] SMTP ready for ${config.smtpHost}:${config.smtpPort}`);
+            debugEmail("SMTP verify succeeded");
             return transporter;
         })().catch((error) => {
+            debugEmail("SMTP verify failed", serializeEmailError(error));
             transporterPromise = null;
             throw error;
         });
@@ -125,14 +175,30 @@ const buildText = ({ headline, intro, ctaLabel, ctaUrl, closing, supportNote, })
 const sendTemplateEmail = async (to, template) => {
     const transporter = await getTransporter();
     const { emailFrom } = loadMailerConfig();
-    const info = await transporter.sendMail({
-        from: `"${APP_NAME}" <${emailFrom}>`,
+    debugEmail("sending email", {
         to,
+        from: emailFrom,
         subject: template.subject,
-        html: buildHtml(template),
-        text: buildText(template),
+        ctaUrl: template.ctaUrl,
     });
-    return info.messageId;
+    const info = await Promise.race([
+        transporter.sendMail({
+            from: `"${APP_NAME}" <${emailFrom}>`,
+            to,
+            subject: template.subject,
+            html: buildHtml(template),
+            text: buildText(template),
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("SMTP send timed out")), SMTP_OPERATION_TIMEOUT_MS)),
+    ]);
+    const sentInfo = info;
+    debugEmail("sendMail succeeded", {
+        messageId: sentInfo.messageId,
+        accepted: sentInfo.accepted,
+        rejected: sentInfo.rejected,
+        response: sentInfo.response,
+    });
+    return sentInfo.messageId;
 };
 const getFriendlyEmailError = (error) => {
     if (!(error instanceof Error)) {
@@ -148,6 +214,9 @@ const getFriendlyEmailError = (error) => {
     }
     if (code === "ECONNECTION" || code === "ETIMEDOUT" || code === "ECONNREFUSED") {
         return "SMTP connection failed. For Brevo, check SMTP_HOST=smtp-relay.brevo.com, SMTP_PORT=587, SMTP_SECURE=false, and outbound network access on Render.";
+    }
+    if (/timed out/i.test(combined)) {
+        return "SMTP request timed out. This usually means the host could not complete the connection or handshake in time.";
     }
     if (/ENOTFOUND|getaddrinfo/i.test(combined)) {
         return "SMTP host could not be resolved. Check SMTP_HOST.";
@@ -190,6 +259,7 @@ const sendVerificationEmail = async (email, token) => {
     catch (error) {
         const friendlyError = getFriendlyEmailError(error);
         console.error("Verification email error:", friendlyError);
+        debugEmail("verification email raw error", serializeEmailError(error));
         throw new Error(friendlyError);
     }
 };
@@ -202,6 +272,7 @@ const sendPasswordResetEmail = async (email, token) => {
     catch (error) {
         const friendlyError = getFriendlyEmailError(error);
         console.error("Password reset email error:", friendlyError);
+        debugEmail("password reset raw error", serializeEmailError(error));
         throw new Error(friendlyError);
     }
 };
