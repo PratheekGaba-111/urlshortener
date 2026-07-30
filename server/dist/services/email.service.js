@@ -14,23 +14,49 @@ const getRequiredEnv = (name) => {
     }
     return value;
 };
-const getClientUrl = () => getRequiredEnv("CLIENT_URL").replace(/\/$/, "");
-const emailUser = getRequiredEnv("EMAIL_USER");
-const emailPass = getRequiredEnv("EMAIL_PASS");
-const smtpHost = process.env.SMTP_HOST?.trim() || "smtp.gmail.com";
-const smtpPort = Number(process.env.SMTP_PORT?.trim() || "465");
-const smtpSecure = process.env.SMTP_SECURE?.trim() !== undefined
-    ? process.env.SMTP_SECURE.trim() === "true"
-    : smtpPort === 465;
-const transporter = nodemailer_1.default.createTransport({
-    host: smtpHost,
-    port: smtpPort,
-    secure: smtpSecure,
-    auth: {
-        user: emailUser,
-        pass: emailPass,
-    },
-});
+let transporterPromise = null;
+const loadMailerConfig = () => {
+    const smtpPortRaw = process.env.SMTP_PORT?.trim() || "465";
+    const smtpPort = Number(smtpPortRaw);
+    if (Number.isNaN(smtpPort) || smtpPort <= 0) {
+        throw new Error(`Invalid SMTP_PORT value: ${smtpPortRaw}`);
+    }
+    const smtpSecureEnv = process.env.SMTP_SECURE?.trim();
+    return {
+        clientUrl: getRequiredEnv("CLIENT_URL").replace(/\/$/, ""),
+        emailUser: getRequiredEnv("EMAIL_USER"),
+        emailPass: getRequiredEnv("EMAIL_PASS"),
+        smtpHost: process.env.SMTP_HOST?.trim() || "smtp.gmail.com",
+        smtpPort,
+        smtpSecure: smtpSecureEnv !== undefined
+            ? smtpSecureEnv === "true"
+            : smtpPort === 465,
+    };
+};
+const getClientUrl = () => loadMailerConfig().clientUrl;
+const getTransporter = async () => {
+    if (!transporterPromise) {
+        transporterPromise = (async () => {
+            const config = loadMailerConfig();
+            const transporter = nodemailer_1.default.createTransport({
+                host: config.smtpHost,
+                port: config.smtpPort,
+                secure: config.smtpSecure,
+                auth: {
+                    user: config.emailUser,
+                    pass: config.emailPass,
+                },
+            });
+            await transporter.verify();
+            console.log(`[email] SMTP ready for ${config.smtpHost}:${config.smtpPort}`);
+            return transporter;
+        })().catch((error) => {
+            transporterPromise = null;
+            throw error;
+        });
+    }
+    return transporterPromise;
+};
 const buildHtml = ({ headline, intro, ctaLabel, ctaUrl, ctaColor, closing, supportNote, }) => `
     <div style="background:#0f172a;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;color:#e2e8f0;">
         <div style="max-width:560px;margin:0 auto;background:#111827;border:1px solid rgba(148,163,184,0.18);border-radius:20px;overflow:hidden;">
@@ -78,6 +104,8 @@ const buildText = ({ headline, intro, ctaLabel, ctaUrl, closing, supportNote, })
     supportNote,
 ].join("\n");
 const sendTemplateEmail = async (to, template) => {
+    const transporter = await getTransporter();
+    const emailUser = loadMailerConfig().emailUser;
     const info = await transporter.sendMail({
         from: `"${APP_NAME}" <${emailUser}>`,
         to,
@@ -86,6 +114,26 @@ const sendTemplateEmail = async (to, template) => {
         text: buildText(template),
     });
     return info.messageId;
+};
+const getFriendlyEmailError = (error) => {
+    if (!(error instanceof Error)) {
+        return "Email delivery failed";
+    }
+    const anyError = error;
+    const message = anyError.message || "Email delivery failed";
+    const response = anyError.response || "";
+    const code = anyError.code || "";
+    const combined = `${message} ${response}`;
+    if (code === "EAUTH" || /auth|login|password/i.test(combined)) {
+        return "SMTP authentication failed. If you are using Gmail, make sure EMAIL_PASS is a Gmail App Password, not your regular account password.";
+    }
+    if (code === "ECONNECTION" || code === "ETIMEDOUT" || code === "ECONNREFUSED") {
+        return "SMTP connection failed. Check SMTP_HOST, SMTP_PORT, SMTP_SECURE, and outbound network access on Render.";
+    }
+    if (/ENOTFOUND|getaddrinfo/i.test(combined)) {
+        return "SMTP host could not be resolved. Check SMTP_HOST.";
+    }
+    return message;
 };
 const buildVerificationTemplate = (token) => {
     const clientUrl = getClientUrl();
@@ -121,8 +169,9 @@ const sendVerificationEmail = async (email, token) => {
         console.log("Verification email sent:", messageId);
     }
     catch (error) {
-        console.error("Verification email error:", error.message);
-        throw error;
+        const friendlyError = getFriendlyEmailError(error);
+        console.error("Verification email error:", friendlyError);
+        throw new Error(friendlyError);
     }
 };
 exports.sendVerificationEmail = sendVerificationEmail;
@@ -132,8 +181,9 @@ const sendPasswordResetEmail = async (email, token) => {
         console.log("Password reset email sent:", messageId);
     }
     catch (error) {
-        console.error("Password reset email error:", error.message);
-        throw error;
+        const friendlyError = getFriendlyEmailError(error);
+        console.error("Password reset email error:", friendlyError);
+        throw new Error(friendlyError);
     }
 };
 exports.sendPasswordResetEmail = sendPasswordResetEmail;

@@ -72,8 +72,15 @@ const register = async (req, res) => {
             await (0, email_service_1.sendVerificationEmail)(user.email, verificationToken);
         }
         catch (emailError) {
-            await User_1.default.deleteOne({ _id: user._id });
-            throw emailError;
+            console.error("Verification email could not be delivered after registration:", emailError);
+            res.status(201).json({
+                success: true,
+                message: "Account created, but the verification email could not be delivered right now. You can resend it from the login page once email service is available.",
+                verificationEmailSent: false,
+                email: user.email,
+                canResendVerification: true
+            });
+            return;
         }
         res.status(201).json({
             success: true,
@@ -176,10 +183,10 @@ const resendVerificationEmail = async (req, res) => {
         });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({
+        console.error("Failed to resend verification email:", error);
+        res.status(503).json({
             success: false,
-            message: "Internal Server Error"
+            message: "Verification email could not be sent right now. Please try again later."
         });
     }
 };
@@ -226,7 +233,17 @@ const requestPasswordReset = async (req, res) => {
         user.resetToken = resetToken;
         user.resetTokenExpires = new Date(Date.now() + 30 * 60 * 1000);
         await user.save();
-        await (0, email_service_1.sendPasswordResetEmail)(user.email, resetToken);
+        try {
+            await (0, email_service_1.sendPasswordResetEmail)(user.email, resetToken);
+        }
+        catch (emailError) {
+            console.error("Password reset email could not be delivered:", emailError);
+            res.status(503).json({
+                success: false,
+                message: "Password reset email could not be sent right now. Please try again later."
+            });
+            return;
+        }
         res.status(200).json({
             success: true,
             message: "If an account exists, a reset email has been sent."

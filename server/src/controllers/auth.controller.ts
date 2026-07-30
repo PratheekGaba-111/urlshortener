@@ -84,8 +84,16 @@ export const register = async(
             const verificationToken = await issueVerificationToken(user);
             await sendVerificationEmail(user.email, verificationToken);
         } catch (emailError) {
-            await User.deleteOne({ _id: user._id });
-            throw emailError;
+            console.error("Verification email could not be delivered after registration:", emailError);
+            res.status(201).json({
+                success: true,
+                message:
+                    "Account created, but the verification email could not be delivered right now. You can resend it from the login page once email service is available.",
+                verificationEmailSent: false,
+                email: user.email,
+                canResendVerification: true
+            });
+            return;
         }
         
         res.status(201).json({
@@ -202,10 +210,10 @@ export const resendVerificationEmail = async (
             message: "A new verification email has been sent."
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({
+        console.error("Failed to resend verification email:", error);
+        res.status(503).json({
             success: false,
-            message: "Internal Server Error"
+            message: "Verification email could not be sent right now. Please try again later."
         });
     }
 };
@@ -266,7 +274,16 @@ export const requestPasswordReset = async (
         user.resetTokenExpires = new Date(Date.now() + 30 * 60 * 1000);
         await user.save();
 
-        await sendPasswordResetEmail(user.email, resetToken);
+        try {
+            await sendPasswordResetEmail(user.email, resetToken);
+        } catch (emailError) {
+            console.error("Password reset email could not be delivered:", emailError);
+            res.status(503).json({
+                success: false,
+                message: "Password reset email could not be sent right now. Please try again later."
+            });
+            return;
+        }
 
         res.status(200).json({
             success: true,
