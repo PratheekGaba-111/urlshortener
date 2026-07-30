@@ -1,10 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendPasswordResetEmail = exports.sendVerificationEmail = void 0;
-const nodemailer_1 = __importDefault(require("nodemailer"));
+const brevo_1 = require("@getbrevo/brevo");
 require("../config/env");
 const APP_NAME = "Shortify";
 const getRequiredEnv = (name) => {
@@ -14,9 +11,8 @@ const getRequiredEnv = (name) => {
     }
     return value;
 };
-const SMTP_OPERATION_TIMEOUT_MS = 15000;
 const MAIL_DEBUG = process.env.MAIL_DEBUG?.trim() === "true";
-let transporterPromise = null;
+let brevoClientPromise = null;
 const debugEmail = (...args) => {
     if (MAIL_DEBUG) {
         console.log("[mail-debug]", ...args);
@@ -44,87 +40,47 @@ const serializeEmailError = (error) => {
     };
 };
 const loadMailerConfig = () => {
-    const smtpHost = process.env.SMTP_HOST?.trim() || "smtp-relay.brevo.com";
-    const smtpPortRaw = process.env.SMTP_PORT?.trim() || "587";
-    const smtpPort = Number(smtpPortRaw);
-    if (Number.isNaN(smtpPort) || smtpPort <= 0) {
-        throw new Error(`Invalid SMTP_PORT value: ${smtpPortRaw}`);
-    }
-    const smtpSecureEnv = process.env.SMTP_SECURE?.trim();
-    const brevoLogin = process.env.BREVO_SMTP_LOGIN?.trim();
-    const brevoKey = process.env.BREVO_SMTP_KEY?.trim();
-    const emailUser = brevoLogin || process.env.EMAIL_USER?.trim();
-    const emailPass = brevoKey || process.env.EMAIL_PASS?.trim();
+    const apiKey = process.env.BREVO_API_KEY?.trim();
     const emailFrom = process.env.EMAIL_FROM?.trim() ||
-        process.env.EMAIL_USER?.trim() ||
-        brevoLogin ||
         "";
-    if (!emailUser) {
-        throw new Error("Missing SMTP login. Set BREVO_SMTP_LOGIN or EMAIL_USER.");
-    }
-    if (!emailPass) {
-        throw new Error("Missing SMTP password. Set BREVO_SMTP_KEY or EMAIL_PASS.");
+    if (!apiKey) {
+        throw new Error("Missing Brevo API key. Set BREVO_API_KEY.");
     }
     if (!emailFrom) {
         throw new Error("Missing sender email. Set EMAIL_FROM to a verified sender address.");
     }
     debugEmail("loaded config", {
-        smtpHost,
-        smtpPort,
-        smtpSecure: smtpSecureEnv !== undefined ? smtpSecureEnv === "true" : smtpPort === 465,
-        emailUser: maskValue(emailUser),
+        apiKey: maskValue(apiKey),
         emailFrom,
         clientUrl: getRequiredEnv("CLIENT_URL").replace(/\/$/, ""),
     });
     return {
         clientUrl: getRequiredEnv("CLIENT_URL").replace(/\/$/, ""),
-        emailUser,
-        emailPass,
+        apiKey,
         emailFrom,
-        smtpHost,
-        smtpPort,
-        smtpSecure: smtpSecureEnv !== undefined
-            ? smtpSecureEnv === "true"
-            : smtpPort === 465,
     };
 };
 const getClientUrl = () => loadMailerConfig().clientUrl;
-const getTransporter = async () => {
-    if (!transporterPromise) {
-        transporterPromise = (async () => {
+const getBrevoClient = async () => {
+    if (!brevoClientPromise) {
+        brevoClientPromise = (async () => {
             const config = loadMailerConfig();
-            debugEmail("creating transporter", {
-                host: config.smtpHost,
-                port: config.smtpPort,
-                secure: config.smtpSecure,
+            debugEmail("creating brevo client", {
+                emailFrom: config.emailFrom,
+                clientUrl: config.clientUrl,
             });
-            const transporter = nodemailer_1.default.createTransport({
-                host: config.smtpHost,
-                port: config.smtpPort,
-                secure: config.smtpSecure,
-                connectionTimeout: SMTP_OPERATION_TIMEOUT_MS,
-                greetingTimeout: SMTP_OPERATION_TIMEOUT_MS,
-                socketTimeout: SMTP_OPERATION_TIMEOUT_MS,
-                auth: {
-                    user: config.emailUser,
-                    pass: config.emailPass,
-                },
+            return new brevo_1.BrevoClient({
+                apiKey: config.apiKey,
+                timeoutInSeconds: 30,
+                maxRetries: 1,
             });
-            debugEmail("verifying SMTP connection");
-            await Promise.race([
-                transporter.verify(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("SMTP verification timed out")), SMTP_OPERATION_TIMEOUT_MS)),
-            ]);
-            console.log(`[email] SMTP ready for ${config.smtpHost}:${config.smtpPort}`);
-            debugEmail("SMTP verify succeeded");
-            return transporter;
         })().catch((error) => {
-            debugEmail("SMTP verify failed", serializeEmailError(error));
-            transporterPromise = null;
+            debugEmail("brevo client init failed", serializeEmailError(error));
+            brevoClientPromise = null;
             throw error;
         });
     }
-    return transporterPromise;
+    return brevoClientPromise;
 };
 const buildHtml = ({ headline, intro, ctaLabel, ctaUrl, ctaColor, closing, supportNote, }) => `
     <div style="background:#0f172a;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;color:#e2e8f0;">
@@ -173,7 +129,7 @@ const buildText = ({ headline, intro, ctaLabel, ctaUrl, closing, supportNote, })
     supportNote,
 ].join("\n");
 const sendTemplateEmail = async (to, template) => {
-    const transporter = await getTransporter();
+    const brevo = await getBrevoClient();
     const { emailFrom } = loadMailerConfig();
     debugEmail("sending email", {
         to,
@@ -181,24 +137,20 @@ const sendTemplateEmail = async (to, template) => {
         subject: template.subject,
         ctaUrl: template.ctaUrl,
     });
-    const info = await Promise.race([
-        transporter.sendMail({
-            from: `"${APP_NAME}" <${emailFrom}>`,
-            to,
-            subject: template.subject,
-            html: buildHtml(template),
-            text: buildText(template),
-        }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("SMTP send timed out")), SMTP_OPERATION_TIMEOUT_MS)),
-    ]);
-    const sentInfo = info;
-    debugEmail("sendMail succeeded", {
-        messageId: sentInfo.messageId,
-        accepted: sentInfo.accepted,
-        rejected: sentInfo.rejected,
-        response: sentInfo.response,
+    const response = await brevo.transactionalEmails.sendTransacEmail({
+        sender: {
+            email: emailFrom,
+            name: APP_NAME,
+        },
+        to: [{ email: to }],
+        subject: template.subject,
+        htmlContent: buildHtml(template),
+        textContent: buildText(template),
     });
-    return sentInfo.messageId;
+    debugEmail("sendMail succeeded", {
+        messageId: response.messageId,
+    });
+    return response.messageId ?? response.messageIds?.[0] ?? "brevo-api-email-sent";
 };
 const getFriendlyEmailError = (error) => {
     if (!(error instanceof Error)) {
@@ -209,17 +161,17 @@ const getFriendlyEmailError = (error) => {
     const response = anyError.response || "";
     const code = anyError.code || "";
     const combined = `${message} ${response}`;
-    if (code === "EAUTH" || /auth|login|password/i.test(combined)) {
-        return "SMTP authentication failed. For Brevo, use BREVO_SMTP_LOGIN as the username and BREVO_SMTP_KEY as the password.";
+    if (anyError.statusCode === 401 || anyError.statusCode === 403) {
+        return "Brevo API authentication failed. Make sure BREVO_API_KEY is valid.";
     }
-    if (code === "ECONNECTION" || code === "ETIMEDOUT" || code === "ECONNREFUSED") {
-        return "SMTP connection failed. For Brevo, check SMTP_HOST=smtp-relay.brevo.com, SMTP_PORT=587, SMTP_SECURE=false, and outbound network access on Render.";
+    if (/unauthorized|forbidden|api key/i.test(combined)) {
+        return "Brevo API authentication failed. Make sure BREVO_API_KEY is valid.";
     }
     if (/timed out/i.test(combined)) {
-        return "SMTP request timed out. This usually means the host could not complete the connection or handshake in time.";
+        return "Brevo API request timed out. This usually means the request could not complete in time.";
     }
-    if (/ENOTFOUND|getaddrinfo/i.test(combined)) {
-        return "SMTP host could not be resolved. Check SMTP_HOST.";
+    if (/network|fetch|econnreset|socket hang up/i.test(combined)) {
+        return "Brevo API request failed due to a network issue.";
     }
     return message;
 };
