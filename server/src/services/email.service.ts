@@ -15,6 +15,7 @@ type MailerConfig = {
     clientUrl: string;
     emailUser: string;
     emailPass: string;
+    emailFrom: string;
     smtpHost: string;
     smtpPort: number;
     smtpSecure: boolean;
@@ -23,7 +24,9 @@ type MailerConfig = {
 let transporterPromise: Promise<nodemailer.Transporter> | null = null;
 
 const loadMailerConfig = (): MailerConfig => {
-    const smtpPortRaw = process.env.SMTP_PORT?.trim() || "465";
+    const smtpHost =
+        process.env.SMTP_HOST?.trim() || "smtp-relay.brevo.com";
+    const smtpPortRaw = process.env.SMTP_PORT?.trim() || "587";
     const smtpPort = Number(smtpPortRaw);
 
     if (Number.isNaN(smtpPort) || smtpPort <= 0) {
@@ -31,12 +34,40 @@ const loadMailerConfig = (): MailerConfig => {
     }
 
     const smtpSecureEnv = process.env.SMTP_SECURE?.trim();
+    const brevoLogin = process.env.BREVO_SMTP_LOGIN?.trim();
+    const brevoKey = process.env.BREVO_SMTP_KEY?.trim();
+    const emailUser = brevoLogin || process.env.EMAIL_USER?.trim();
+    const emailPass = brevoKey || process.env.EMAIL_PASS?.trim();
+    const emailFrom =
+        process.env.EMAIL_FROM?.trim() ||
+        process.env.EMAIL_USER?.trim() ||
+        brevoLogin ||
+        "";
+
+    if (!emailUser) {
+        throw new Error(
+            "Missing SMTP login. Set BREVO_SMTP_LOGIN or EMAIL_USER."
+        );
+    }
+
+    if (!emailPass) {
+        throw new Error(
+            "Missing SMTP password. Set BREVO_SMTP_KEY or EMAIL_PASS."
+        );
+    }
+
+    if (!emailFrom) {
+        throw new Error(
+            "Missing sender email. Set EMAIL_FROM to a verified sender address."
+        );
+    }
 
     return {
         clientUrl: getRequiredEnv("CLIENT_URL").replace(/\/$/, ""),
-        emailUser: getRequiredEnv("EMAIL_USER"),
-        emailPass: getRequiredEnv("EMAIL_PASS"),
-        smtpHost: process.env.SMTP_HOST?.trim() || "smtp.gmail.com",
+        emailUser,
+        emailPass,
+        emailFrom,
+        smtpHost,
         smtpPort,
         smtpSecure:
             smtpSecureEnv !== undefined
@@ -153,10 +184,10 @@ const buildText = ({
 
 const sendTemplateEmail = async (to: string, template: EmailTemplate) => {
     const transporter = await getTransporter();
-    const emailUser = loadMailerConfig().emailUser;
+    const { emailFrom } = loadMailerConfig();
 
     const info = await transporter.sendMail({
-        from: `"${APP_NAME}" <${emailUser}>`,
+        from: `"${APP_NAME}" <${emailFrom}>`,
         to,
         subject: template.subject,
         html: buildHtml(template),
@@ -182,11 +213,11 @@ const getFriendlyEmailError = (error: unknown) => {
     const combined = `${message} ${response}`;
 
     if (code === "EAUTH" || /auth|login|password/i.test(combined)) {
-        return "SMTP authentication failed. If you are using Gmail, make sure EMAIL_PASS is a Gmail App Password, not your regular account password.";
+        return "SMTP authentication failed. For Brevo, use BREVO_SMTP_LOGIN as the username and BREVO_SMTP_KEY as the password.";
     }
 
     if (code === "ECONNECTION" || code === "ETIMEDOUT" || code === "ECONNREFUSED") {
-        return "SMTP connection failed. Check SMTP_HOST, SMTP_PORT, SMTP_SECURE, and outbound network access on Render.";
+        return "SMTP connection failed. For Brevo, check SMTP_HOST=smtp-relay.brevo.com, SMTP_PORT=587, SMTP_SECURE=false, and outbound network access on Render.";
     }
 
     if (/ENOTFOUND|getaddrinfo/i.test(combined)) {
