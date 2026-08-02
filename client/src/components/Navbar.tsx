@@ -29,17 +29,25 @@ const Navbar = () => {
 
   return (
     <header 
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-4 py-4",
-        scrolled ? "py-2" : "py-4"
+     className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-4",
+        scrolled ? "py-2" : "py-3 md:py-4"
       )}
     >
-      <nav 
+      <nav
         className={cn(
-          "mx-auto max-w-5xl flex h-16 items-center justify-between px-6 rounded-2xl border transition-all duration-300",
-          scrolled 
-            ? (theme === "dark" ? "bg-[#0a0a0c]/80 backdrop-blur-xl border-white/10 shadow-2xl shadow-black/50" : "bg-white/80 backdrop-blur-xl border-slate-200 shadow-lg shadow-slate-200/60")
-            : (theme === "dark" ? "bg-transparent border-transparent" : "bg-transparent border-transparent")
+          "mx-auto max-w-5xl flex h-14 md:h-16 items-center justify-between px-4 md:px-6 rounded-2xl border transition-all duration-300",
+          scrolled
+            ? (
+                theme === "dark"
+                  ? "bg-[#0a0a0c]/80 backdrop-blur-xl border-white/10 shadow-2xl shadow-black/50"
+                  : "bg-white/80 backdrop-blur-xl border-slate-200 shadow-lg shadow-slate-200/60"
+              )
+            : (
+                theme === "dark"
+                  ? "bg-transparent border-transparent"
+                  : "bg-transparent border-transparent"
+              )
         )}
       >
        
@@ -110,17 +118,33 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Toggle */}
-        <button
-          type="button"
-          className={`md:hidden flex h-10 w-10 items-center justify-center rounded-xl border transition-colors ${
-            theme === "dark"
-              ? "border-white/10 text-slate-400 hover:bg-white/5"
-              : "border-slate-200 text-slate-600 hover:bg-slate-100"
-          }`}
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-200 ${
+              theme === "dark"
+                ? "border-white/10 text-slate-400 hover:bg-white/5 hover:text-white"
+                : "border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            }`}
+          >
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle navigation menu"
+            className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all duration-200 ${
+              theme === "dark"
+                ? "border-white/10 text-slate-400 hover:bg-white/5 hover:text-white"
+                : "border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            }`}
+          >
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile Menu */}
@@ -135,6 +159,7 @@ const Navbar = () => {
       >
         <div className="flex flex-col gap-4">
           <Link to="/home" className={`p-2 text-lg font-medium ${theme === "dark" ? "text-white" : "text-slate-900"}`} onClick={() => setMenuOpen(false)}>Home</Link>
+          
           <div className={`h-px my-2 ${theme === "dark" ? "bg-white/5" : "bg-slate-200"}`} />
           {authenticated ? (
             <button onClick={handleLogout} className="flex items-center gap-2 text-lg font-medium text-red-400 p-2">
