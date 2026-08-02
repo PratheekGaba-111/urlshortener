@@ -20,19 +20,29 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// api.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     if (error.response?.status === 401 && localStorage.getItem(TOKEN_KEY)) {
+//       clearAuthToken();
+
+//       if (window.location.pathname !== "/login") {
+//         window.location.assign("/login");
+//       }
+//     }
+
+//     return Promise.reject(error);
+//   },
+// );
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && localStorage.getItem(TOKEN_KEY)) {
-      clearAuthToken();
-
-      if (window.location.pathname !== "/login") {
-        window.location.assign("/login");
-      }
-    }
+    console.log("❌ API ERROR");
+    console.log("URL:", error.config?.url);
+    console.log("STATUS:", error.response?.status);
+    console.log("BODY:", error.response?.data);
 
     return Promise.reject(error);
   },
 );
-
 export default api;

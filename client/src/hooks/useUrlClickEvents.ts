@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { UrlClickUpdate } from "../types/url";
-import { clearAuthToken, TOKEN_KEY } from "../utils/auth";
+import { TOKEN_KEY } from "../utils/auth";
 import { apiBaseUrl } from "../services/api";
 
 export const useUrlClickEvents = (
@@ -20,10 +20,10 @@ export const useUrlClickEvents = (
       onUrlClick(update);
     });
 
-    events.onerror = () => {
-      if (events.readyState === EventSource.CLOSED) {
-        clearAuthToken();
-      }
+    events.onerror = (error) => {
+      console.warn("SSE connection interrupted.", error);
+      // The browser automatically retries the connection.
+      // Don't log the user out here.
     };
 
     return () => {
